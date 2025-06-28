@@ -42,16 +42,7 @@ def show_production_trends(df, smoothing=True):
     if smoothing:
         grouped['7-day Avg'] = grouped['bottles_produced'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    outliers = highlight_outliers(grouped['bottles_produced'])
-    fig.add_scatter(x=grouped.loc[outliers, 'date'], y=grouped.loc[outliers, 'bottles_produced'], mode='markers', marker=dict(color='red', size=8), name='Outlier')
-    max_val = grouped['bottles_produced'].max()
-    min_val = grouped['bottles_produced'].min()
-    max_date = grouped.loc[grouped['bottles_produced'].idxmax(), 'date']
-    min_date = grouped.loc[grouped['bottles_produced'].idxmin(), 'date']
-    fig.add_annotation(x=max_date, y=max_val, text=f"Peak: {max_val:,.0f}", showarrow=True, arrowhead=1, ax=0, ay=-40)
-    fig.add_annotation(x=min_date, y=min_val, text=f"Low: {min_val:,.0f}", showarrow=True, arrowhead=1, ax=0, ay=40)
     st.plotly_chart(fig, use_container_width=True)
-    st.caption(f"Peak: {max_val:,.0f} on {max_date.date()} | Low: {min_val:,.0f} on {min_date.date()}")
 
 def show_defect_rate_trend(df, smoothing=True):
     grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
@@ -60,16 +51,7 @@ def show_defect_rate_trend(df, smoothing=True):
     if smoothing:
         grouped['7-day Avg'] = grouped['defect_rate'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    outliers = highlight_outliers(grouped['defect_rate'])
-    fig.add_scatter(x=grouped.loc[outliers, 'date'], y=grouped.loc[outliers, 'defect_rate'], mode='markers', marker=dict(color='red', size=8), name='Outlier')
-    max_val = grouped['defect_rate'].max()
-    min_val = grouped['defect_rate'].min()
-    max_date = grouped.loc[grouped['defect_rate'].idxmax(), 'date']
-    min_date = grouped.loc[grouped['defect_rate'].idxmin(), 'date']
-    fig.add_annotation(x=max_date, y=max_val, text=f"Peak: {max_val:.2f}%", showarrow=True, arrowhead=1, ax=0, ay=-40)
-    fig.add_annotation(x=min_date, y=min_val, text=f"Low: {min_val:.2f}%", showarrow=True, arrowhead=1, ax=0, ay=40)
     st.plotly_chart(fig, use_container_width=True)
-    st.caption(f"Peak: {max_val:.2f}% on {max_date.date()} | Low: {min_val:.2f}% on {min_date.date()}")
 
 def show_downtime_trend(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['downtime'].sum()
@@ -77,37 +59,7 @@ def show_downtime_trend(df, smoothing=True):
     if smoothing:
         grouped['7-day Avg'] = grouped['downtime'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    outliers = highlight_outliers(grouped['downtime'])
-    fig.add_scatter(x=grouped.loc[outliers, 'date'], y=grouped.loc[outliers, 'downtime'], mode='markers', marker=dict(color='red', size=8), name='Outlier')
-    max_val = grouped['downtime'].max()
-    min_val = grouped['downtime'].min()
-    max_date = grouped.loc[grouped['downtime'].idxmax(), 'date']
-    min_date = grouped.loc[grouped['downtime'].idxmin(), 'date']
-    fig.add_annotation(x=max_date, y=max_val, text=f"Peak: {max_val:,.1f}", showarrow=True, arrowhead=1, ax=0, ay=-40)
-    fig.add_annotation(x=min_date, y=min_val, text=f"Low: {min_val:,.1f}", showarrow=True, arrowhead=1, ax=0, ay=40)
     st.plotly_chart(fig, use_container_width=True)
-    st.caption(f"Peak: {max_val:,.1f} mins on {max_date.date()} | Low: {min_val:,.1f} mins on {min_date.date()}")
-
-def show_defect_vs_production_scatter(df):
-    st.subheader("🔎 Defect Count vs. Bottles Produced")
-    if df.empty:
-        st.write("No data available.")
-        return
-    zs = zscore(df['defect_count'], nan_policy='omit')
-    outliers = np.abs(zs) > 3
-    if outliers.sum() == 0:
-        st.info("No statistical outliers detected in defect count.")
-    color_labels = np.where(outliers, 'Outlier', 'Normal')
-    fig = px.scatter(
-        df, x='bottles_produced', y='defect_count',
-        color=color_labels,
-        color_discrete_map={'Outlier': 'red', 'Normal': 'blue'},
-        title='Defect vs Production Scatter',
-        labels={'bottles_produced': 'Bottles Produced', 'defect_count': 'Defect Count'}
-    )
-    fig.update_layout(legend_title_text='Status')
-    st.plotly_chart(fig, use_container_width=True)
-    st.caption("Red points are statistical outliers (Z-score > 3).")
 
 def show_shift_breakdown(df):
     st.subheader("📊 Shift-wise Defect % Breakdown")
@@ -116,74 +68,54 @@ def show_shift_breakdown(df):
         'defect_count': 'sum'
     }).reset_index()
     grouped['Defect %'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
-    fig = px.bar(
-        grouped, x='shift', y='Defect %',
-        title='Defect % by Shift',
-        labels={'shift': 'Shift', 'Defect %': 'Defect %'}
-    )
-    fig.update_traces(
-        text=grouped['Defect %'].round(2).astype(str) + '%',
-        textposition='outside'
-    )
+    fig = px.bar(grouped, x='shift', y='Defect %', title='Defect % by Shift')
+    fig.update_traces(text=grouped['Defect %'].round(2).astype(str) + '%', textposition='outside')
     st.plotly_chart(fig, use_container_width=True)
-    st.caption(f"Highest: Shift {grouped.loc[grouped['Defect %'].idxmax(), 'shift']} | Lowest: Shift {grouped.loc[grouped['Defect %'].idxmin(), 'shift']}")
 
 def show_plant_comparison(df):
     st.subheader("🏷️ Total Production by Plant")
     grouped = df.groupby('plant')['bottles_produced'].sum().reset_index()
-    fig = px.bar(
-        grouped, x='plant', y='bottles_produced',
-        title='Plant-wise Total Production',
-        labels={'plant': 'Plant', 'bottles_produced': 'Total Bottles Produced'}
-    )
-    fig.update_traces(
-        text=grouped['bottles_produced'].astype(int).astype(str),
-        textposition='outside'
-    )
+    fig = px.bar(grouped, x='plant', y='bottles_produced', title='Plant-wise Total Production')
+    fig.update_traces(text=grouped['bottles_produced'].astype(int).astype(str), textposition='outside')
     st.plotly_chart(fig, use_container_width=True)
-    st.caption(f"Highest: {grouped.loc[grouped['bottles_produced'].idxmax(), 'plant']} | Lowest: {grouped.loc[grouped['bottles_produced'].idxmin(), 'plant']}")
 
 def show_kpi_insights(df):
-    st.subheader("📌 KPI Insights")
+    st.subheader("📌 KPI Highlights")
     if df.empty:
         st.write("No data available for insights.")
         return
-    prod = df.groupby('date')['bottles_produced'].sum()
-    if len(prod) >= 14:
-        last_7_avg = prod[-7:].mean()
-        prev_7_avg = prod[-14:-7].mean()
-        prod_trend = ((last_7_avg - prev_7_avg) / prev_7_avg) * 100 if prev_7_avg != 0 else 0
-    else:
-        last_7_avg = prod.mean()
-        prod_trend = 0
-    st.write(f"**Production:** Last 7-day avg: {last_7_avg:,.0f} | Change vs prev week: {prod_trend:+.2f}%")
+    col1, col2 = st.columns(2)
+    with col1:
+        prod_by_plant = df.groupby('plant')['bottles_produced'].sum().sort_values(ascending=False)
+        st.markdown("**🏭 Production by Plant**")
+        st.dataframe(prod_by_plant.to_frame(), use_container_width=True)
+    with col2:
+        defect_by_plant = df.groupby('plant')['defect_count'].sum().sort_values(ascending=False)
+        st.markdown("**❌ Defects by Plant**")
+        st.dataframe(defect_by_plant.to_frame(), use_container_width=True)
+    st.markdown("---")
+    st.markdown("#### 📅 Daily Production Summary")
+    daily_summary = df.groupby('date').agg({
+        'bottles_produced': 'sum',
+        'defect_count': 'sum',
+        'downtime': 'sum'
+    }).reset_index()
+    fig = px.bar(daily_summary, x='date', y='bottles_produced', title="Daily Production")
+    st.plotly_chart(fig, use_container_width=True)
+    st.markdown("---")
+    st.markdown("#### 🏆 Top & Bottom Days by Production")
+    top_days = daily_summary.nlargest(3, 'bottles_produced')[['date', 'bottles_produced']]
+    bottom_days = daily_summary.nsmallest(3, 'bottles_produced')[['date', 'bottles_produced']]
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("**Best Days**")
+        st.table(top_days)
+    with col2:
+        st.markdown("**Worst Days**")
+        st.table(bottom_days)
 
-    grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'})
-    grouped['defect_rate'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
-    defect = grouped['defect_rate']
-    if len(defect) >= 14:
-        last_7_avg = defect[-7:].mean()
-        prev_7_avg = defect[-14:-7].mean()
-        defect_trend = ((last_7_avg - prev_7_avg) / prev_7_avg) * 100 if prev_7_avg != 0 else 0
-    else:
-        last_7_avg = defect.mean()
-        defect_trend = 0
-    st.write(f"**Defect Rate:** Last 7-day avg: {last_7_avg:.2f}% | Change vs prev week: {defect_trend:+.2f}%")
-
-    downtime = df.groupby('date')['downtime'].sum()
-    if len(downtime) >= 14:
-        last_7_avg = downtime[-7:].mean()
-        prev_7_avg = downtime[-14:-7].mean()
-        downtime_trend = ((last_7_avg - prev_7_avg) / prev_7_avg) * 100 if prev_7_avg != 0 else 0
-    else:
-        last_7_avg = downtime.mean()
-        downtime_trend = 0
-    st.write(f"**Downtime:** Last 7-day avg: {last_7_avg:.1f} mins | Change vs prev week: {downtime_trend:+.2f}%")
-
-def show_top_days_table(df):
-    st.subheader("🏅 Top/Bottom 3 Days")
-    prod = df.groupby('date')['bottles_produced'].sum()
-    st.write("**Best Production Days:**")
-    st.dataframe(prod.sort_values(ascending=False).head(3))
-    st.write("**Worst Production Days:**")
-    st.dataframe(prod.sort_values().head(3))
+def show_plant_defect_heatmap(df):
+    st.subheader("🌡️ Plant vs. Shift Defect Heatmap")
+    pivot = df.pivot_table(index='plant', columns='shift', values='defect_count', aggfunc='sum').fillna(0)
+    fig = px.imshow(pivot, text_auto=True, aspect="auto", color_continuous_scale='Reds', title="Total Defects by Plant & Shift")
+    st.plotly_chart(fig, use_container_width=True)
