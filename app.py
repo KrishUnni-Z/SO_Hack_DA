@@ -92,6 +92,7 @@ if menu == "Dashboard":
         with tabs[0]:
             st.header("📊 Overall Summary")
             df_filtered = viz.filter_data(df)
+
             col1, col2, col3, col4 = st.columns(4)
             with col1:
                 st.markdown('<div class="metric-card"><div class="metric-title">Total Plants</div><div class="metric-value">{}</div><div class="metric-subtitle">Active</div></div>'.format(
