@@ -47,11 +47,11 @@ st.title("🏭 Factory Metrics Integration Dashboard")
 st.markdown("Unified, real-time manufacturing analytics for all plants. **Upload Excel files below to update your dashboard.**")
 
 with st.sidebar:
-    st.markdown("## Navigation")
+    st.markdown("## 🧭 Navigation")
     menu = st.radio("", ["Dashboard", "Upload Data"])
 
     st.markdown("---")
-    st.markdown("## Data Upload")
+    st.markdown("## 📂 Data Upload")
     uploaded_file = st.file_uploader("Upload Plant Excel File", type=["xlsx"])
     if uploaded_file:
         with open(os.path.join(raw_data_path, uploaded_file.name), 'wb') as f:
@@ -67,13 +67,13 @@ with st.sidebar:
 
     if raw_files:
         st.markdown("---")
-        st.markdown("### Loaded Data Files")
+        st.markdown("### 📄 Loaded Data Files")
         for file in raw_files:
             st.write(f"- {file}")
 
     if processed_files:
         st.markdown("---")
-        st.markdown("### Processed Data by Plant")
+        st.markdown("### 🗂️ Processed Data by Plant")
         for file in processed_files:
             plant_name = file.replace('_clean.csv', '')
             st.write(f"✅ Processed: {plant_name}")
@@ -87,10 +87,10 @@ if menu == "Dashboard":
 
     df = viz.load_processed_data()
     if not df.empty:
-        tabs = st.tabs(["Overall Summary", "Trends & Breakdowns", "KPI Insights"])
+        tabs = st.tabs(["📊 Overall Summary", "📈 Trends & Breakdowns", "🧠 Insights"])
 
         with tabs[0]:
-            st.header("Overall Summary")
+            st.header("📊 Overall Summary")
             df_filtered = viz.filter_data(df)
 
             col1, col2, col3, col4 = st.columns(4)
@@ -118,25 +118,26 @@ if menu == "Dashboard":
             smoothing = st.checkbox("Show Smoothed Trend Lines", value=True)
             data = df_filtered.copy()
 
-            st.subheader("Production Trends")
-            viz.show_production_trends(data, smoothing=smoothing)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("**Production Trend by Date**")
+                viz.show_production_trends(data, smoothing=smoothing)
+            with col2:
+                st.markdown("**Defect Rate Trend by Date**")
+                viz.show_defect_rate_trend(data, smoothing=smoothing)
 
-            st.subheader("Defect Rate Trends")
-            viz.show_defect_rate_trend(data, smoothing=smoothing)
-
-            st.subheader("Downtime Trends")
-            viz.show_downtime_trend(data, smoothing=smoothing)
-
-            st.subheader("Defect Rate by Shift Over Time")
-            viz.show_shift_defect_rate_over_time(data)
-
-            st.subheader("Shift-wise Breakdown")
-            viz.show_shift_breakdown(data)
+            st.markdown("---")
+            col3, col4 = st.columns(2)
+            with col3:
+                st.markdown("**Downtime Trend by Date**")
+                viz.show_downtime_trend(data, smoothing=smoothing)
+            with col4:
+                st.markdown("**Shift-wise Breakdown**")
+                viz.show_shift_breakdown(data)
 
         with tabs[2]:
-            st.header("KPI Insights")
+            st.header("Insights & Highlights")
             viz.show_kpi_insights(df_filtered)
-            viz.show_plant_defect_heatmap(df_filtered)
 
     else:
         st.info("No processed data to display. Please upload plant data files.")
