@@ -48,9 +48,8 @@ def show_trend_with_high_low(grouped, y_col, title, y_label):
     fig.add_scatter(x=[min_date], y=[min_val], mode='markers+text', marker=dict(color='red', size=10),
                     text=["Low"], textposition='bottom center', name='Low')
     st.plotly_chart(fig, use_container_width=True)
-    st.markdown(f"**High:** {max_val:.2f} on {max_date.date()}  \n"
-                f"**Low:** {min_val:.2f} on {min_date.date()}  \n"
-                f"**Average:** {avg_val:.2f}")
+    st.markdown(f"Over the selected period, the highest recorded **{y_label}** was **{max_val:.2f}** on **{max_date.date()}**, "
+                f"while the lowest was **{min_val:.2f}** on **{min_date.date()}**. The average across the period was **{avg_val:.2f}**.")
 
 def show_production_trends(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['bottles_produced'].sum()
@@ -72,11 +71,12 @@ def show_downtime_trend(df, smoothing=True):
     show_trend_with_high_low(grouped, 'downtime', 'Downtime Trend', 'Downtime (mins)')
 
 def show_shift_defect_rate_over_time(df):
-    st.subheader("Shift-wise Defect Rate Over Time")
+    st.subheader("Defect Rate by Shift Over Time")
     grouped = df.groupby(['date', 'shift']).agg({'defect_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
     grouped['defect_rate'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
     fig = px.line(grouped, x='date', y='defect_rate', color='shift', title='Defect Rate by Shift Over Time')
     st.plotly_chart(fig, use_container_width=True)
+    st.markdown("This chart compares defect rates between shifts over time, highlighting operational differences across shifts.")
 
 def show_shift_breakdown(df):
     st.subheader("Shift-wise Defect % Breakdown")
@@ -88,6 +88,9 @@ def show_shift_breakdown(df):
     fig = px.bar(grouped, x='shift', y='Defect %', title='Defect % by Shift')
     fig.update_traces(text=grouped['Defect %'].round(2).astype(str) + '%', textposition='outside')
     st.plotly_chart(fig, use_container_width=True)
+    high_shift = grouped.loc[grouped['Defect %'].idxmax(), 'shift']
+    low_shift = grouped.loc[grouped['Defect %'].idxmin(), 'shift']
+    st.markdown(f"Currently, **Shift {high_shift}** has the highest defect rate, while **Shift {low_shift}** has the lowest.")
 
 def show_plant_comparison(df):
     st.subheader("Total Production by Plant")
@@ -95,23 +98,28 @@ def show_plant_comparison(df):
     fig = px.bar(grouped, x='plant', y='bottles_produced', title='Plant-wise Total Production')
     fig.update_traces(text=grouped['bottles_produced'].astype(int).astype(str), textposition='outside')
     st.plotly_chart(fig, use_container_width=True)
+    high_plant = grouped.loc[grouped['bottles_produced'].idxmax(), 'plant']
+    low_plant = grouped.loc[grouped['bottles_produced'].idxmin(), 'plant']
+    st.markdown(f"**{high_plant}** recorded the highest overall production, while **{low_plant}** produced the least among all plants.")
 
 def show_kpi_insights(df):
-    st.subheader("KPI Highlights")
+    st.header("Key Performance Insights")
     if df.empty:
         st.write("No data available for insights.")
         return
+    st.markdown("Below are summarized insights from the dataset, helping you quickly identify operational strengths and areas needing attention.")
     col1, col2 = st.columns(2)
     with col1:
         prod_by_plant = df.groupby('plant')['bottles_produced'].sum().sort_values(ascending=False)
-        st.markdown("**Production by Plant**")
+        st.markdown("**Production by Plant:**")
         st.dataframe(prod_by_plant.to_frame(), use_container_width=True)
     with col2:
         defect_by_plant = df.groupby('plant')['defect_count'].sum().sort_values(ascending=False)
-        st.markdown("**Defects by Plant**")
+        st.markdown("**Defects by Plant:**")
         st.dataframe(defect_by_plant.to_frame(), use_container_width=True)
+
     st.markdown("---")
-    st.markdown("Daily Production Summary")
+    st.subheader("Daily Production Overview")
     daily_summary = df.groupby('date').agg({
         'bottles_produced': 'sum',
         'defect_count': 'sum',
@@ -119,16 +127,24 @@ def show_kpi_insights(df):
     }).reset_index()
     fig = px.bar(daily_summary, x='date', y='bottles_produced', title="Daily Production")
     st.plotly_chart(fig, use_container_width=True)
+    avg_daily = daily_summary['bottles_produced'].mean()
+    high_day = daily_summary.loc[daily_summary['bottles_produced'].idxmax()]
+    low_day = daily_summary.loc[daily_summary['bottles_produced'].idxmin()]
+    st.markdown(f"Across the selected period, the average daily production was **{avg_daily:,.0f}** bottles. "
+                f"The highest daily output was **{high_day['bottles_produced']:,.0f}** on **{high_day['date'].date()}**, "
+                f"while the lowest was **{low_day['bottles_produced']:,.0f}** on **{low_day['date'].date()}**.")
+
     st.markdown("---")
-    st.markdown("Top & Bottom Days by Production")
+    st.subheader("Top & Bottom Production Days")
     top_days = daily_summary.nlargest(3, 'bottles_produced')[['date', 'bottles_produced']]
     bottom_days = daily_summary.nsmallest(3, 'bottles_produced')[['date', 'bottles_produced']]
+    st.write("**These tables show the three best and worst days by total production:**")
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("**Best Days**")
+        st.markdown("**Best Days:**")
         st.table(top_days)
     with col2:
-        st.markdown("**Worst Days**")
+        st.markdown("**Worst Days:**")
         st.table(bottom_days)
 
 def show_plant_defect_heatmap(df):
@@ -136,3 +152,4 @@ def show_plant_defect_heatmap(df):
     pivot = df.pivot_table(index='plant', columns='shift', values='defect_count', aggfunc='sum').fillna(0)
     fig = px.imshow(pivot, text_auto=True, aspect="auto", color_continuous_scale='Reds', title="Total Defects by Plant & Shift")
     st.plotly_chart(fig, use_container_width=True)
+    st.markdown("This heatmap highlights where defects are most concentrated across plants and shifts.")
