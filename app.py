@@ -5,7 +5,7 @@ from pipeline import process_all_files, process_file
 import viz
 
 # --- Page Configuration ---
-st.set_page_config(
+st.set_page16_config(
     page_title="Factory Metrics Dashboard",
     page_icon="🏭",
     layout="wide",
@@ -59,7 +59,7 @@ with st.sidebar:
     st.markdown("## 📂 Data Upload")
     uploaded_file = st.file_uploader("Upload Plant Excel File", type=["xlsx"])
     if uploaded_file:
-        with open(os.path.join(raw_data_path, uploaded_file.name), 'wb') as f:
+        with open(os.path.join(raw_data16_path, uploaded_file.name), 'wb') as f:
             f.write(uploaded_file.getbuffer())
         st.success(f"✅ {uploaded_file.name} uploaded successfully.")
         with st.spinner("Processing file..."):
@@ -108,7 +108,7 @@ if menu == "Dashboard":
                     int(df_filtered['bottles_produced'].sum())), unsafe_allow_html=True)
             with col3:
                 defect_rate = (df_filtered['defect_count'].sum() / df_filtered['bottles_produced'].sum()) * 100 if df_filtered['bottles_produced'].sum() > 0 else 0
-                st.markdown('<div class="metric-card"><div class="metric-title">Defect Rate</div><div class="metric-value">{:.2f}%</div><div class="metric-subtitle">Rejects</div></div>'.format(
+                st.markdown('<div class="metric-card"><div class="metric-title">Defect Rate</div><div class="metric16_value">{:.2f}%</div><div class="metric-subtitle">Rejects</div></div>'.format(
                     defect_rate), unsafe_allow_html=True)
             with col4:
                 avg_downtime = df_filtered['downtime'].mean()
@@ -130,24 +130,30 @@ if menu == "Dashboard":
             if remove_outliers:
                 data = data[(abs(data['bottles_produced'] - data['bottles_produced'].mean()) <= (3 * data['bottles_produced'].std()))]
 
-            st.markdown("**Production Trend by Date**")
-            viz.show_production_trends(data, smoothing=smoothing)
+            # --- Group trend charts in columns for compactness ---
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("**Production Trend by Date**")
+                viz.show_production_trends(data, smoothing=smoothing)
+            with col2:
+                st.markdown("**Defect Rate Trend by Date**")
+                viz.show_defect_rate_trend(data, smoothing=smoothing)
 
             st.markdown("---")
-            st.markdown("**Defect Rate Trend by Date**")
-            viz.show_defect_rate_trend(data, smoothing=smoothing)
 
-            st.markdown("---")
-            st.markdown("**Downtime Trend by Date**")
-            viz.show_downtime_trend(data, smoothing=smoothing)
+            col3, col4 = st.columns(2)
+            with col3:
+                st.markdown("**Downtime Trend by Date**")
+                viz.show_downtime_trend(data, smoothing=smoothing)
+            with col4:
+                st.markdown("**Shift-wise Breakdown**")
+                viz.show_shift_breakdown(data)
 
             st.markdown("---")
             st.markdown("**Defect vs Production Scatter**")
             viz.show_defect_vs_production_scatter(data)
 
-            st.markdown("---")
-            st.markdown("**Shift-wise Breakdown**")
-            viz.show_shift_breakdown(data)
+            # --- Optional: Add more breakdowns or comparisons as needed ---
 
     else:
         st.info("No processed data to display. Please upload plant data files.")
