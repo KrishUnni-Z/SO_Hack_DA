@@ -98,6 +98,7 @@ def show_shift_breakdown(df):
     fig = px.bar(grouped, x='shift', y='Defect %', title='Defect % by Shift')
     fig.update_traces(text=grouped['Defect %'].round(2).astype(str) + '%', textposition='outside')
     st.plotly_chart(fig, use_container_width=True)
+    st.write(f"Across shifts, defect percentages vary, highlighting operational differences. Shift-wise analysis helps identify process inefficiencies and target improvements.")
 
 def show_plant_comparison(df):
     st.subheader("Total Production by Plant")
