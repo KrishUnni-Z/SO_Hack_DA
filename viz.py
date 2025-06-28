@@ -34,7 +34,7 @@ def filter_data(df):
 def show_production_trends(df, smoothing=True):
     grouped = df.groupby('date')['bottles_produced'].sum()
     fig, ax = plt.subplots(figsize=(6, 3))
-    ax142.plot(grouped.index, grouped.values, label='Raw')
+    ax.plot(grouped.index, grouped.values, label='Raw')
     if smoothing:
         smoothed = grouped.rolling(window=7, min_periods=1).mean()
         ax.plot(grouped.index, smoothed.values, linestyle='--', label='7-day Avg')
@@ -46,7 +46,7 @@ def show_production_trends(df, smoothing=True):
     st.pyplot(fig)
 
 def show_defect_rate_trend(df, smoothing=True):
-    grouped = df.groupby('date').agg({'defect142_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
+    grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
     grouped['defect_rate'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
     fig, ax = plt.subplots(figsize=(6, 3))
     ax.plot(grouped['date'], grouped['defect_rate'], label='Defect Rate')
@@ -68,7 +68,7 @@ def show_downtime_trend(df, smoothing=True):
         smoothed = grouped.rolling(window=7, min_periods=1).mean()
         ax.plot(grouped.index, smoothed.values, linestyle='--', label='7-day Avg')
     ax.set_xlabel('Date', fontsize=8)
-    ax142.set_ylabel('Downtime (mins)', fontsize=8)
+    ax.set_ylabel('Downtime (mins)', fontsize=8)
     ax.set_title('🕒 Downtime Trend', fontsize=10)
     ax.tick_params(axis='both', labelsize=7)
     ax.legend(fontsize=7)
