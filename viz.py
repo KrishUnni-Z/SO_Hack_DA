@@ -33,28 +33,47 @@ def filter_data(df):
 
 def show_production_trends(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['bottles_produced'].sum()
+    high_value = grouped['bottles_produced'].max()
+    low_value = grouped['bottles_produced'].min()
     fig = px.line(grouped, x='date', y='bottles_produced', title='Production Trend', labels={'bottles_produced': 'Bottles Produced'})
     if smoothing:
         grouped['7-day Avg'] = grouped['bottles_produced'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
+    fig.add_hline(y=high_value, line_dash="dot", line_color="green", annotation_text="High", annotation_position="top left")
+    fig.add_hline(y=low_value, line_dash="dot", line_color="red", annotation_text="Low", annotation_position="bottom left")
     st.plotly_chart(fig, use_container_width=True)
+    commentary = st.text_area("Commentary on Production Trend", "Enter insights or notes here...")
+    st.markdown(commentary)
 
 def show_defect_rate_trend(df, smoothing=True):
     grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
     grouped['defect_rate'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
+    high_value = grouped['defect_rate'].max()
+    low_value = grouped['defect_rate'].min()
     fig = px.line(grouped, x='date', y='defect_rate', title='Defect Rate Trend', labels={'defect_rate': 'Defect Rate (%)'})
     if smoothing:
         grouped['7-day Avg'] = grouped['defect_rate'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
+    fig.add_hline(y=high_value, line_dash="dot", line_color="green", annotation_text="High", annotation_position="top left")
+    fig.add_hline(y=low_value, line_dash="dot", line_color="red", annotation_text="Low", annotation_position="bottom left")
     st.plotly_chart(fig, use_container_width=True)
+    commentary = st.text_area("Commentary on Defect Rate Trend", "Enter insights or notes here...")
+    st.markdown(commentary)
 
 def show_downtime_trend(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['downtime'].sum()
+    high_value = grouped['downtime'].max()
+    low_value = grouped['downtime'].min()
     fig = px.line(grouped, x='date', y='downtime', title='Downtime Trend', labels={'downtime': 'Downtime (mins)'})
     if smoothing:
         grouped['7-day Avg'] = grouped['downtime'].rolling(window=7, min_periods=1).mean()
-        fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
+        fig.add_scatter(x=grouped['date'], y='7-day Avg', mode='lines', name='7-day Avg', line=dict(dash='dash'))
+    fig.add_hline(y=high_value, line_dash="dot", line_color="green", annotation_text="High", annotation_position="top left")
+    fig.add_hline(y=low_value, line_dash="dot", line_color="red", annotation_text="Low", annotation_position="bottom left")
     st.plotly_chart(fig, use_container_width=True)
+    commentary = st.text_area("Commentary on Downtime Trend", "Enter insights or notes here...")
+    st.markdown(commentary)
+
 
 def show_shift_breakdown(df):
     st.subheader("Shift-wise Defect % Breakdown")
