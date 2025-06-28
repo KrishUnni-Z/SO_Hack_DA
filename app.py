@@ -137,19 +137,7 @@ if menu == "Dashboard":
 
         with tabs[2]:
             st.header("Insights & Highlights")
-            # Main KPI tables
             viz.show_kpi_insights(df_filtered)
-            st.markdown("---")
-            # Additional Insights/Business Value Plots
-            viz.show_production_vs_defect_rate(df_filtered)
-            st.markdown("---")
-            viz.show_monthly_summary(df_filtered)
-            st.markdown("---")
-            viz.show_defect_heatmap(df_filtered)
-            st.markdown("---")
-            viz.show_production_vs_defects_scatter(df_filtered)
-            st.markdown("---")
-            viz.show_downtime_vs_defects_scatter(df_filtered)
 
     else:
         st.info("No processed data to display. Please upload plant data files.")
