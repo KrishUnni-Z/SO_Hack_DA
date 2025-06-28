@@ -107,16 +107,25 @@ def show_kpi_insights(df):
     if df.empty:
         st.write("No data available for insights.")
         return
-    st.markdown("Below are summarized insights from the dataset, helping you quickly identify operational strengths and areas needing attention.")
+
+    st.markdown("Below are summarized insights helping you quickly identify operational strengths and areas needing attention.")
+
     col1, col2 = st.columns(2)
     with col1:
+        st.markdown("#### Total Production by Plant")
         prod_by_plant = df.groupby('plant')['bottles_produced'].sum().sort_values(ascending=False)
-        st.markdown("**Production by Plant:**")
-        st.dataframe(prod_by_plant.to_frame(), use_container_width=True)
+        fig = px.bar(prod_by_plant, title="Total Production by Plant", labels={'value': 'Bottles Produced', 'plant': 'Plant'})
+        st.plotly_chart(fig, use_container_width=True)
+        top_plant = prod_by_plant.idxmax()
+        st.markdown(f"The plant with the highest cumulative production is **{top_plant}** with **{prod_by_plant.max():,.0f} bottles** produced.")
+
     with col2:
-        defect_by_plant = df.groupby('plant')['defect_count'].sum().sort_values(ascending=False)
-        st.markdown("**Defects by Plant:**")
-        st.dataframe(defect_by_plant.to_frame(), use_container_width=True)
+        st.markdown("#### Total Defects by Plant")
+        defects_by_plant = df.groupby('plant')['defect_count'].sum().sort_values(ascending=False)
+        fig = px.bar(defects_by_plant, title="Total Defects by Plant", labels={'value': 'Defects', 'plant': 'Plant'})
+        st.plotly_chart(fig, use_container_width=True)
+        high_defect_plant = defects_by_plant.idxmax()
+        st.markdown(f"**{high_defect_plant}** reported the most defects overall, with **{defects_by_plant.max():,.0f} defects** logged.")
 
     st.markdown("---")
     st.subheader("Daily Production Overview")
@@ -125,27 +134,14 @@ def show_kpi_insights(df):
         'defect_count': 'sum',
         'downtime': 'sum'
     }).reset_index()
-    fig = px.bar(daily_summary, x='date', y='bottles_produced', title="Daily Production")
+    fig = px.bar(daily_summary, x='date', y='bottles_produced', title="Daily Production Across All Plants")
     st.plotly_chart(fig, use_container_width=True)
     avg_daily = daily_summary['bottles_produced'].mean()
     high_day = daily_summary.loc[daily_summary['bottles_produced'].idxmax()]
     low_day = daily_summary.loc[daily_summary['bottles_produced'].idxmin()]
-    st.markdown(f"Across the selected period, the average daily production was **{avg_daily:,.0f}** bottles. "
-                f"The highest daily output was **{high_day['bottles_produced']:,.0f}** on **{high_day['date'].date()}**, "
-                f"while the lowest was **{low_day['bottles_produced']:,.0f}** on **{low_day['date'].date()}**.")
-
-    st.markdown("---")
-    st.subheader("Top & Bottom Production Days")
-    top_days = daily_summary.nlargest(3, 'bottles_produced')[['date', 'bottles_produced']]
-    bottom_days = daily_summary.nsmallest(3, 'bottles_produced')[['date', 'bottles_produced']]
-    st.write("**These tables show the three best and worst days by total production:**")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**Best Days:**")
-        st.table(top_days)
-    with col2:
-        st.markdown("**Worst Days:**")
-        st.table(bottom_days)
+    st.markdown(f"Over the selected period, the average daily production was **{avg_daily:,.0f} bottles**. "
+                f"The highest daily output was **{high_day['bottles_produced']:,.0f} bottles** on **{high_day['date'].date()}**, "
+                f"while the lowest was **{low_day['bottles_produced']:,.0f} bottles** on **{low_day['date'].date()}**.")
 
 def show_plant_defect_heatmap(df):
     st.subheader("Plant vs. Shift Defect Heatmap")
