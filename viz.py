@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import numpy as np
 
 def load_processed_data(processed_data_path='data/processed'):
     all_data = []
@@ -33,46 +32,70 @@ def filter_data(df):
 
 def show_production_trends(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['bottles_produced'].sum()
-    high_value = grouped['bottles_produced'].max()
-    low_value = grouped['bottles_produced'].min()
+    high_idx = grouped['bottles_produced'].idxmax()
+    low_idx = grouped['bottles_produced'].idxmin()
+    high_point = grouped.loc[high_idx]
+    low_point = grouped.loc[low_idx]
+    avg_value = grouped['bottles_produced'].mean()
+
     fig = px.line(grouped, x='date', y='bottles_produced', title='Production Trend', labels={'bottles_produced': 'Bottles Produced'})
+    fig.add_scatter(x=[high_point['date']], y=[high_point['bottles_produced']], mode='markers+text',
+                    marker=dict(color='green', size=10), text=["High"], textposition='top center', name='High')
+    fig.add_scatter(x=[low_point['date']], y=[low_point['bottles_produced']], mode='markers+text',
+                    marker=dict(color='red', size=10), text=["Low"], textposition='bottom center', name='Low')
     if smoothing:
         grouped['7-day Avg'] = grouped['bottles_produced'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    fig.add_hline(y=high_value, line_dash="dot", line_color="green", annotation_text="High")
-    fig.add_hline(y=low_value, line_dash="dot", line_color="red", annotation_text="Low")
     st.plotly_chart(fig, use_container_width=True)
-    commentary = st.text_area("Commentary on Production Trend", "Enter insights here...")
-    st.markdown(commentary)
+
+    st.markdown(f"**Average Daily Production:** {avg_value:,.0f} bottles")
+    st.markdown(f"**Highest Production:** {high_point['bottles_produced']:,.0f} on {high_point['date'].date()}")
+    st.markdown(f"**Lowest Production:** {low_point['bottles_produced']:,.0f} on {low_point['date'].date()}")
 
 def show_defect_rate_trend(df, smoothing=True):
     grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
     grouped['defect_rate'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
-    high_value = grouped['defect_rate'].max()
-    low_value = grouped['defect_rate'].min()
+    high_idx = grouped['defect_rate'].idxmax()
+    low_idx = grouped['defect_rate'].idxmin()
+    high_point = grouped.loc[high_idx]
+    low_point = grouped.loc[low_idx]
+    avg_value = grouped['defect_rate'].mean()
+
     fig = px.line(grouped, x='date', y='defect_rate', title='Defect Rate Trend', labels={'defect_rate': 'Defect Rate (%)'})
+    fig.add_scatter(x=[high_point['date']], y=[high_point['defect_rate']], mode='markers+text',
+                    marker=dict(color='green', size=10), text=["High"], textposition='top center', name='High')
+    fig.add_scatter(x=[low_point['date']], y=[low_point['defect_rate']], mode='markers+text',
+                    marker=dict(color='red', size=10), text=["Low"], textposition='bottom center', name='Low')
     if smoothing:
         grouped['7-day Avg'] = grouped['defect_rate'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    fig.add_hline(y=high_value, line_dash="dot", line_color="green", annotation_text="High")
-    fig.add_hline(y=low_value, line_dash="dot", line_color="red", annotation_text="Low")
     st.plotly_chart(fig, use_container_width=True)
-    commentary = st.text_area("Commentary on Defect Rate Trend", "Enter insights here...")
-    st.markdown(commentary)
+
+    st.markdown(f"**Average Defect Rate:** {avg_value:.2f}%")
+    st.markdown(f"**Highest Defect Rate:** {high_point['defect_rate']:.2f}% on {high_point['date'].date()}")
+    st.markdown(f"**Lowest Defect Rate:** {low_point['defect_rate']:.2f}% on {low_point['date'].date()}")
 
 def show_downtime_trend(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['downtime'].sum()
-    high_value = grouped['downtime'].max()
-    low_value = grouped['downtime'].min()
+    high_idx = grouped['downtime'].idxmax()
+    low_idx = grouped['downtime'].idxmin()
+    high_point = grouped.loc[high_idx]
+    low_point = grouped.loc[low_idx]
+    avg_value = grouped['downtime'].mean()
+
     fig = px.line(grouped, x='date', y='downtime', title='Downtime Trend', labels={'downtime': 'Downtime (mins)'})
+    fig.add_scatter(x=[high_point['date']], y=[high_point['downtime']], mode='markers+text',
+                    marker=dict(color='green', size=10), text=["High"], textposition='top center', name='High')
+    fig.add_scatter(x=[low_point['date']], y=[low_point['downtime']], mode='markers+text',
+                    marker=dict(color='red', size=10), text=["Low"], textposition='bottom center', name='Low')
     if smoothing:
         grouped['7-day Avg'] = grouped['downtime'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    fig.add_hline(y=high_value, line_dash="dot", line_color="green", annotation_text="High")
-    fig.add_hline(y=low_value, line_dash="dot", line_color="red", annotation_text="Low")
     st.plotly_chart(fig, use_container_width=True)
-    commentary = st.text_area("Commentary on Downtime Trend", "Enter insights here...")
-    st.markdown(commentary)
+
+    st.markdown(f"**Average Downtime:** {avg_value:.1f} mins")
+    st.markdown(f"**Highest Downtime:** {high_point['downtime']:.1f} mins on {high_point['date'].date()}")
+    st.markdown(f"**Lowest Downtime:** {low_point['downtime']:.1f} mins on {low_point['date'].date()}")
 
 def show_shift_breakdown(df):
     st.subheader("Shift-wise Defect % Breakdown")
@@ -109,7 +132,6 @@ def show_kpi_insights(df):
 
     st.markdown("---")
     st.subheader("Daily Top Plant (Production)")
-
     daily_prod = df.groupby(['date', 'plant'])['bottles_produced'].sum().reset_index()
     top_prod = daily_prod.loc[daily_prod.groupby('date')['bottles_produced'].idxmax()]
     fig = px.bar(top_prod, x='date', y='bottles_produced', color='plant', title='Top Plant by Production Each Day')
@@ -119,7 +141,6 @@ def show_kpi_insights(df):
 
     st.markdown("---")
     st.subheader("Daily Top Plant (Defects)")
-
     daily_defects = df.groupby(['date', 'plant'])['defect_count'].sum().reset_index()
     top_defect = daily_defects.loc[daily_defects.groupby('date')['defect_count'].idxmax()]
     fig2 = px.bar(top_defect, x='date', y='defect_count', color='plant', title='Top Plant by Defects Each Day')
