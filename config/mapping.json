@@ -1,0 +1,52 @@
+
+{
+  "plant_1": {
+    "Date": "date",
+    "Shift": "shift",
+    "Total Produces": "bottles_produced",
+    "Rejects": "defect_count",
+    "Downtime": "downtime"
+  },
+  "plant_2": {
+    "Production Date": "date",
+    "Shift Code": "shift",
+    "Units Made": "bottles_produced",
+    "Rejects": "defect_count",
+    "Downtime": "downtime"
+  },
+  "plant_3": {
+    "Production Date": "date",
+    "Shift Code": "shift",
+    "Units Made": "bottles_produced",
+    "Rejects": "defect_count",
+    "Downtime": "downtime"
+  },
+  "plant_4": {
+    "Day": "date",
+    "Shift Number": "shift",
+    "Units Produced": "bottles_produced",
+    "Rejects": "defect_count",
+    "Downtime": "downtime"
+  },
+  "plant_5": {
+    "Production Date": "date",
+    "Shift Code": "shift",
+    "Units Made": "bottles_produced",
+    "Rejects": "defect_count",
+    "Downtime (h)": "downtime"
+  },
+  "plant_6": {
+    "Production Date": "date",
+    "Shift Code": "shift",
+    "Units Made": "bottles_produced",
+    "Rejects": "defect_count",
+    "Downtime": "downtime"
+  },
+  "plant_7": {
+    "Date": "date",
+    "Shift": "shift",
+    "Units": "bottles_produced",
+    "Rejects": "defect_count",
+    "Downtime": "downtime"
+  }
+}
