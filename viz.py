@@ -35,7 +35,7 @@ def filter_data(df):
 
 def show_production_trends(df, smoothing=True):
     grouped = df.groupby('date')['bottles_produced'].sum()
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(grouped.index, grouped.values, label='Raw')
     if smoothing:
         smoothed = grouped.rolling(window=7, min_periods=1).mean()
@@ -43,14 +43,14 @@ def show_production_trends(df, smoothing=True):
     ax.set_xlabel('Date')
     ax.set_ylabel('Bottles Produced')
     ax.set_title('Production Trend')
-    ax.set_xticklabels(grouped.index.strftime('%Y-%m-%d'), rotation=90)
+    ax.tick_params(axis='x', rotation=45)
     ax.legend()
     st.pyplot(fig)
 
 def show_defect_rate_trend(df, smoothing=True):
     grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
     grouped['defect_rate'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(grouped['date'], grouped['defect_rate'], label='Defect Rate')
     if smoothing:
         smoothed = grouped['defect_rate'].rolling(window=7, min_periods=1).mean()
@@ -58,13 +58,13 @@ def show_defect_rate_trend(df, smoothing=True):
     ax.set_xlabel('Date')
     ax.set_ylabel('Defect Rate (%)')
     ax.set_title('Defect Rate Trend')
-    ax.set_xticklabels(grouped['date'].dt.strftime('%Y-%m-%d'), rotation=90)
+    ax.tick_params(axis='x', rotation=45)
     ax.legend()
     st.pyplot(fig)
 
 def show_downtime_trend(df, smoothing=True):
     grouped = df.groupby('date')['downtime'].sum()
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(grouped.index, grouped.values, label='Downtime')
     if smoothing:
         smoothed = grouped.rolling(window=7, min_periods=1).mean()
@@ -72,13 +72,13 @@ def show_downtime_trend(df, smoothing=True):
     ax.set_xlabel('Date')
     ax.set_ylabel('Downtime (mins)')
     ax.set_title('Downtime Trend')
-    ax.set_xticklabels(grouped.index.strftime('%Y-%m-%d'), rotation=90)
+    ax.tick_params(axis='x', rotation=45)
     ax.legend()
     st.pyplot(fig)
 
 def show_defect_vs_production_scatter(df):
     st.subheader("Defect Count vs. Bottles Produced")
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(6, 4))
     ax.scatter(df['bottles_produced'], df['defect_count'], alpha=0.5)
     ax.set_xlabel('Bottles Produced')
     ax.set_ylabel('Defect Count')
@@ -93,7 +93,7 @@ def show_shift_breakdown(df):
     }).reset_index()
     grouped['Defect %'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(6, 4))
     ax.bar(grouped['shift'].astype(str), grouped['Defect %'])
     ax.set_xlabel('Shift')
     ax.set_ylabel('Defect %')
@@ -105,7 +105,7 @@ def show_shift_breakdown(df):
 def show_plant_comparison(df):
     st.subheader("Total Production by Plant")
     grouped = df.groupby('plant')['bottles_produced'].sum().reset_index()
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(6, 4))
     ax.bar(grouped['plant'], grouped['bottles_produced'])
     ax.set_xlabel('Plant')
     ax.set_ylabel('Total Bottles Produced')
