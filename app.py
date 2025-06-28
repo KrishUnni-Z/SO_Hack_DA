@@ -47,16 +47,16 @@ st.title("🏭 Factory Metrics Integration Dashboard")
 st.markdown("Unified, real-time manufacturing analytics for all plants. **Upload Excel files below to update your dashboard.**")
 
 with st.sidebar:
-    st.markdown("## Navigation")
+    st.markdown("## 🧭 Navigation")
     menu = st.radio("", ["Dashboard", "Upload Data"])
 
     st.markdown("---")
-    st.markdown("## Data Upload")
+    st.markdown("## 📂 Data Upload")
     uploaded_file = st.file_uploader("Upload Plant Excel File", type=["xlsx"])
     if uploaded_file:
         with open(os.path.join(raw_data_path, uploaded_file.name), 'wb') as f:
             f.write(uploaded_file.getbuffer())
-        st.success(f"{uploaded_file.name} uploaded successfully.")
+        st.success(f"✅ {uploaded_file.name} uploaded successfully.")
         with st.spinner("Processing file..."):
             time.sleep(1)
             process_file(uploaded_file.name)
@@ -67,16 +67,16 @@ with st.sidebar:
 
     if raw_files:
         st.markdown("---")
-        st.markdown("### Loaded Data Files")
+        st.markdown("### 📄 Loaded Data Files")
         for file in raw_files:
             st.write(f"- {file}")
 
     if processed_files:
         st.markdown("---")
-        st.markdown("### Processed Data by Plant")
+        st.markdown("### 🗂️ Processed Data by Plant")
         for file in processed_files:
             plant_name = file.replace('_clean.csv', '')
-            st.write(f"Processed: {plant_name}")
+            st.write(f"✅ Processed: {plant_name}")
 
 if menu == "Dashboard":
     if raw_files:
@@ -87,10 +87,10 @@ if menu == "Dashboard":
 
     df = viz.load_processed_data()
     if not df.empty:
-        tabs = st.tabs(["Overall Summary", "Trends & Breakdowns", "Insights"])
+        tabs = st.tabs(["📊 Overall Summary", "📈 Trends & Breakdowns", "🧠 Insights"])
 
         with tabs[0]:
-            st.header("Overall Summary")
+            st.header("📊 Overall Summary")
             df_filtered = viz.filter_data(df)
 
             col1, col2, col3, col4 = st.columns(4)
@@ -110,6 +110,7 @@ if menu == "Dashboard":
                     avg_downtime), unsafe_allow_html=True)
 
             st.markdown("---")
+            st.markdown("### Plant Comparison")
             viz.show_plant_comparison(df_filtered)
 
         with tabs[1]:
@@ -119,19 +120,23 @@ if menu == "Dashboard":
 
             col1, col2 = st.columns(2)
             with col1:
+                st.markdown("**Production Trend by Date**")
                 viz.show_production_trends(data, smoothing=smoothing)
             with col2:
+                st.markdown("**Defect Rate Trend by Date**")
                 viz.show_defect_rate_trend(data, smoothing=smoothing)
 
             st.markdown("---")
             col3, col4 = st.columns(2)
             with col3:
+                st.markdown("**Downtime Trend by Date**")
                 viz.show_downtime_trend(data, smoothing=smoothing)
             with col4:
+                st.markdown("**Shift-wise Breakdown**")
                 viz.show_shift_breakdown(data)
 
         with tabs[2]:
-            st.header("Insights")
+            st.header("Insights & Highlights")
             viz.show_kpi_insights(df_filtered)
 
     else:
