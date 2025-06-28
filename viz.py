@@ -1,6 +1,6 @@
+import os
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import numpy as np
 from scipy.stats import zscore
 import streamlit as st
@@ -9,16 +9,41 @@ def highlight_outliers(series, threshold=3):
     zs = zscore(series, nan_policy='omit')
     return np.abs(zs) > threshold
 
+def load_processed_data(processed_data_path='data/processed'):
+    all_data = []
+    for file in os.listdir(processed_data_path):
+        if file.endswith('_clean.csv'):
+            df = pd.read_csv(os.path.join(processed_data_path, file))
+            df['plant'] = file.replace('_clean.csv', '')
+            all_data.append(df)
+    if all_data:
+        combined = pd.concat(all_data, ignore_index=True)
+        combined['date'] = pd.to_datetime(combined['date'])
+        return combined
+    return pd.DataFrame()
+
+def filter_data(df):
+    plants = df['plant'].unique()
+    selected_plants = st.multiselect("Select Plants", plants, default=plants)
+    shifts = df['shift'].unique()
+    selected_shifts = st.multiselect("Select Shifts", shifts, default=shifts)
+    date_range = st.date_input("Select Date Range", [df['date'].min(), df['date'].max()])
+    filtered_df = df[
+        (df['plant'].isin(selected_plants)) &
+        (df['shift'].isin(selected_shifts)) &
+        (df['date'] >= pd.to_datetime(date_range[0])) &
+        (df['date'] <= pd.to_datetime(date_range[1]))
+    ]
+    return filtered_df
+
 def show_production_trends(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['bottles_produced'].sum()
     fig = px.line(grouped, x='date', y='bottles_produced', title='📈 Production Trend', labels={'bottles_produced': 'Bottles Produced'})
     if smoothing:
         grouped['7-day Avg'] = grouped['bottles_produced'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    # Highlight outliers
     outliers = highlight_outliers(grouped['bottles_produced'])
     fig.add_scatter(x=grouped.loc[outliers, 'date'], y=grouped.loc[outliers, 'bottles_produced'], mode='markers', marker=dict(color='red', size=8), name='Outlier')
-    # Highlight peak and low
     max_val = grouped['bottles_produced'].max()
     min_val = grouped['bottles_produced'].min()
     max_date = grouped.loc[grouped['bottles_produced'].idxmax(), 'date']
@@ -35,10 +60,8 @@ def show_defect_rate_trend(df, smoothing=True):
     if smoothing:
         grouped['7-day Avg'] = grouped['defect_rate'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    # Highlight outliers
     outliers = highlight_outliers(grouped['defect_rate'])
     fig.add_scatter(x=grouped.loc[outliers, 'date'], y=grouped.loc[outliers, 'defect_rate'], mode='markers', marker=dict(color='red', size=8), name='Outlier')
-    # Highlight peak and low
     max_val = grouped['defect_rate'].max()
     min_val = grouped['defect_rate'].min()
     max_date = grouped.loc[grouped['defect_rate'].idxmax(), 'date']
@@ -54,10 +77,8 @@ def show_downtime_trend(df, smoothing=True):
     if smoothing:
         grouped['7-day Avg'] = grouped['downtime'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
-    # Highlight outliers
     outliers = highlight_outliers(grouped['downtime'])
     fig.add_scatter(x=grouped.loc[outliers, 'date'], y=grouped.loc[outliers, 'downtime'], mode='markers', marker=dict(color='red', size=8), name='Outlier')
-    # Highlight peak and low
     max_val = grouped['downtime'].max()
     min_val = grouped['downtime'].min()
     max_date = grouped.loc[grouped['downtime'].idxmax(), 'date']
@@ -115,23 +136,3 @@ def show_plant_comparison(df):
     )
     st.plotly_chart(fig, use_container_width=True)
     st.caption(f"Highest: {grouped.loc[grouped['bottles_produced'].idxmax(), 'plant']} | Lowest: {grouped.loc[grouped['bottles_produced'].idxmin(), 'plant']}")
-
-def show_kpi_insights(df):
-    st.markdown("#### 📌 KPI Insights")
-    prod = df.groupby('date')['bottles_produced'].sum()
-    prod_trend = (prod[-7:].mean() - prod[-14:-7].mean()) / prod[-14:-7].mean() * 100 if len(prod) > 14 else 0
-    st.write(f"**Production:** Last 7-day avg: {prod[-7:].mean():,.0f} | Change vs prev week: {prod_trend:+.2f}%")
-    defect = df.groupby('date').apply(lambda x: x['defect_count'].sum() / x['bottles_produced'].sum() * 100)
-    defect_trend = (defect[-7:].mean() - defect[-14:-7].mean()) / defect[-14:-7].mean() * 100 if len(defect) > 14 else 0
-    st.write(f"**Defect Rate:** Last 7-day avg: {defect[-7:].mean():.2f}% | Change vs prev week: {defect_trend:+.2f}%")
-    downtime = df.groupby('date')['downtime'].sum()
-    downtime_trend = (downtime[-7:].mean() - downtime[-14:-7].mean()) / downtime[-14:-7].mean() * 100 if len(downtime) > 14 else 0
-    st.write(f"**Downtime:** Last 7-day avg: {downtime[-7:].mean():.1f} mins | Change vs prev week: {downtime_trend:+.2f}%")
-
-def show_top_days_table(df):
-    st.markdown("#### 🏅 Top/Bottom 3 Days")
-    prod = df.groupby('date')['bottles_produced'].sum()
-    st.write("**Best Production Days:**")
-    st.dataframe(prod.sort_values(ascending=False).head(3))
-    st.write("**Worst Production Days:**")
-    st.dataframe(prod.sort_values().head(3))
