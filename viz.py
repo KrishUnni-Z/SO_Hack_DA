@@ -1,9 +1,9 @@
 import os
 import pandas as pd
+import streamlit as st
 import plotly.express as px
 import numpy as np
 from scipy.stats import zscore
-import streamlit as st
 
 def highlight_outliers(series, threshold=3):
     zs = zscore(series, nan_policy='omit')
@@ -90,11 +90,17 @@ def show_downtime_trend(df, smoothing=True):
 
 def show_defect_vs_production_scatter(df):
     st.subheader("🔎 Defect Count vs. Bottles Produced")
+    if df.empty:
+        st.write("No data available.")
+        return
     zs = zscore(df['defect_count'], nan_policy='omit')
     outliers = np.abs(zs) > 3
+    if outliers.sum() == 0:
+        st.info("No statistical outliers detected in defect count.")
+    color_labels = np.where(outliers, 'Outlier', 'Normal')
     fig = px.scatter(
-        df, x='bottles_produced', y='defect_count', 
-        color=np.where(outliers, 'Outlier', 'Normal'),
+        df, x='bottles_produced', y='defect_count',
+        color=color_labels,
         color_discrete_map={'Outlier': 'red', 'Normal': 'blue'},
         title='Defect vs Production Scatter',
         labels={'bottles_produced': 'Bottles Produced', 'defect_count': 'Defect Count'}
@@ -111,7 +117,7 @@ def show_shift_breakdown(df):
     }).reset_index()
     grouped['Defect %'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
     fig = px.bar(
-        grouped, x='shift', y='Defect %', 
+        grouped, x='shift', y='Defect %',
         title='Defect % by Shift',
         labels={'shift': 'Shift', 'Defect %': 'Defect %'}
     )
@@ -136,3 +142,48 @@ def show_plant_comparison(df):
     )
     st.plotly_chart(fig, use_container_width=True)
     st.caption(f"Highest: {grouped.loc[grouped['bottles_produced'].idxmax(), 'plant']} | Lowest: {grouped.loc[grouped['bottles_produced'].idxmin(), 'plant']}")
+
+def show_kpi_insights(df):
+    st.subheader("📌 KPI Insights")
+    if df.empty:
+        st.write("No data available for insights.")
+        return
+    prod = df.groupby('date')['bottles_produced'].sum()
+    if len(prod) >= 14:
+        last_7_avg = prod[-7:].mean()
+        prev_7_avg = prod[-14:-7].mean()
+        prod_trend = ((last_7_avg - prev_7_avg) / prev_7_avg) * 100 if prev_7_avg != 0 else 0
+    else:
+        last_7_avg = prod.mean()
+        prod_trend = 0
+    st.write(f"**Production:** Last 7-day avg: {last_7_avg:,.0f} | Change vs prev week: {prod_trend:+.2f}%")
+
+    grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'})
+    grouped['defect_rate'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
+    defect = grouped['defect_rate']
+    if len(defect) >= 14:
+        last_7_avg = defect[-7:].mean()
+        prev_7_avg = defect[-14:-7].mean()
+        defect_trend = ((last_7_avg - prev_7_avg) / prev_7_avg) * 100 if prev_7_avg != 0 else 0
+    else:
+        last_7_avg = defect.mean()
+        defect_trend = 0
+    st.write(f"**Defect Rate:** Last 7-day avg: {last_7_avg:.2f}% | Change vs prev week: {defect_trend:+.2f}%")
+
+    downtime = df.groupby('date')['downtime'].sum()
+    if len(downtime) >= 14:
+        last_7_avg = downtime[-7:].mean()
+        prev_7_avg = downtime[-14:-7].mean()
+        downtime_trend = ((last_7_avg - prev_7_avg) / prev_7_avg) * 100 if prev_7_avg != 0 else 0
+    else:
+        last_7_avg = downtime.mean()
+        downtime_trend = 0
+    st.write(f"**Downtime:** Last 7-day avg: {last_7_avg:.1f} mins | Change vs prev week: {downtime_trend:+.2f}%")
+
+def show_top_days_table(df):
+    st.subheader("🏅 Top/Bottom 3 Days")
+    prod = df.groupby('date')['bottles_produced'].sum()
+    st.write("**Best Production Days:**")
+    st.dataframe(prod.sort_values(ascending=False).head(3))
+    st.write("**Worst Production Days:**")
+    st.dataframe(prod.sort_values().head(3))
