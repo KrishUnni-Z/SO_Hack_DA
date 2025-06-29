@@ -35,6 +35,15 @@ st.markdown("""
     font-size: 0.9em;
     color: #6c757d;
 }
+.blue-box {
+    background-color: #e6f0fa;
+    border-left: 4px solid #0072b5;
+    padding: 10px 18px;
+    border-radius: 6px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    font-size: 1em;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -79,11 +88,15 @@ with st.sidebar:
             st.write(f"✅ Processed: {plant_name}")
 
 if menu == "Dashboard":
-    if raw_files:
-        with st.spinner("Processing existing files..."):
-            time.sleep(1)
-            process_all_files()
-        st.success("All available data processed successfully.")
+    # --- Force process all files (in case anything new in raw, or user reloads app) ---
+    with st.spinner("Processing existing files..."):
+        time.sleep(1)
+        process_all_files()
+    st.success("All available data processed successfully.")
+
+    # Show file status for debugging
+    st.caption(f"RAW: {os.listdir(raw_data_path)}")
+    st.caption(f"PROCESSED: {os.listdir(processed_data_path)}")
 
     df = viz.load_processed_data()
     if not df.empty:
