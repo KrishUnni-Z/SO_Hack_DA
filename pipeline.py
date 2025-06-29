@@ -6,7 +6,7 @@ import json
 ALLOWED_PLANTS = {f"plant_{i}" for i in range(1, 8)}
 
 def load_mapping():
-    with open('mapping.json', 'r') as f:
+    with open('config/mapping.json', 'r') as f:
         return json.load(f)
 
 def standardise_shifts(df):
