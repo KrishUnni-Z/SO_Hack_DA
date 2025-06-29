@@ -13,28 +13,37 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    .metric-card {
-        background-color: #f5f7fa;
-        border-radius: 10px;
-        padding: 10px 20px;
-        margin: 5px 0;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        text-align: center;
-    }
-    .metric-title {
-        font-size: 1.2em;
-        color: #2e3a59;
-        font-weight: 600;
-    }
-    .metric-value {
-        font-size: 2em;
-        color: #0072b5;
-        font-weight: 700;
-    }
-    .metric-subtitle {
-        font-size: 0.9em;
-        color: #6c757d;
-    }
+.metric-card {
+    background-color: #f5f7fa;
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin: 5px 0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    text-align: center;
+}
+.metric-title {
+    font-size: 1.2em;
+    color: #2e3a59;
+    font-weight: 600;
+}
+.metric-value {
+    font-size: 2em;
+    color: #0072b5;
+    font-weight: 700;
+}
+.metric-subtitle {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+.blue-box {
+    background-color: #e6f0fa;
+    border-left: 4px solid #0072b5;
+    padding: 10px 18px;
+    border-radius: 6px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    font-size: 1em;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -134,6 +143,14 @@ if menu == "Dashboard":
             with col4:
                 st.markdown("**Shift-wise Breakdown**")
                 viz.show_shift_breakdown(data)
+
+            st.markdown("---")
+            st.markdown("**Day of Week Analysis**")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                viz.show_dayofweek_production(data)
+            with col_b:
+                viz.show_dayofweek_defects(data)
 
         with tabs[2]:
             st.header("Insights & Highlights")
