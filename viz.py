@@ -21,10 +21,6 @@ def load_processed_data(processed_data_path='data/processed'):
             files_loaded.append(file)
     if all_data:
         combined = pd.concat(all_data, ignore_index=True)
-        st.write("Loaded files:", files_loaded)
-        st.write("Combined shape:", combined.shape)
-        st.write("Combined columns:", list(combined.columns))
-        # Check for required columns
         required_cols = {'date', 'shift', 'bottles_produced', 'defect_count', 'downtime'}
         missing = required_cols - set(combined.columns)
         if missing:
