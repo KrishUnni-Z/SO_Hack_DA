@@ -149,16 +149,16 @@ if menu == "Dashboard":
                 viz.show_shift_breakdown(data)
 
             st.markdown("---")
+
+        with tabs[2]:
+            st.header("Insights & Highlights")
+            viz.show_kpi_insights(df_filtered)
             st.markdown("**Day of Week Analysis**")
             col_a, col_b = st.columns(2)
             with col_a:
                 viz.show_dayofweek_production(data)
             with col_b:
                 viz.show_dayofweek_defects(data)
-
-        with tabs[2]:
-            st.header("Insights & Highlights")
-            viz.show_kpi_insights(df_filtered)
 
     else:
         st.info("No processed data to display. Please upload plant data files.")
