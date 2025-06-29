@@ -6,10 +6,10 @@ import plotly.express as px
 def blue_box(text):
     st.markdown(f"""
         <div style="
-            background: linear-gradient(90deg, #e3f0fc 0%, #f5fbff 100%);
+            background-color: #e3f0fc;
             border-left: 6px solid #2196F3;
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.08);
+            box-shadow: 0 2px 8px rgba(33,150,243,0.08);
             padding: 18px 22px;
             margin-bottom: 18px;
             font-size: 1.1rem;
@@ -21,6 +21,7 @@ def blue_box(text):
             {text}
         </div>
     """, unsafe_allow_html=True)
+
 
 
 def load_processed_data(processed_data_path='data/processed'):
