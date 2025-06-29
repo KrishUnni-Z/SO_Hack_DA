@@ -176,12 +176,15 @@ elif menu == "Manual Entry":
         defect_count = st.number_input("Defect Count", min_value=0, value=0)
         downtime = st.number_input("Downtime (mins)", min_value=0, value=0)
         submitted = st.form_submit_button("Submit Entry")
+
     if submitted:
-        if date is None or shift is None or bottles_produced is None or defect_count is None or downtime is None:
+        # Basic validation
+        if not plant or not date or not shift:
             st.error("All fields are required.")
         else:
             try:
-                day_of_week = pd.to_datetime(date).day_name()
+                # Handle date safely
+                day_of_week = pd.to_datetime(str(date)).day_name()
                 entry = pd.DataFrame([{
                     "date": date,
                     "shift": shift,
@@ -190,23 +193,25 @@ elif menu == "Manual Entry":
                     "downtime": downtime,
                     "day_of_week": day_of_week
                 }])
-        # Save or append to the plant's _clean.csv file
-        processed_file = os.path.join(processed_data_path, f"{plant}_clean.csv")
-        if os.path.exists(processed_file):
-            existing = pd.read_csv(processed_file, parse_dates=['date'])
-            # Check if this date/shift combo already exists
-            duplicate = (
-                (existing['date'] == str(date)) &
-                (existing['shift'] == shift)
-            ).any()
-            if duplicate:
-                st.warning(f"An entry for {plant} on {date}, shift {shift} already exists. Not added.")
-            else:
-                entry.to_csv(processed_file, mode='a', header=False, index=False)
-                st.success(f"Entry added for {plant} on {date}, shift {shift}.")
-        else:
-            entry.to_csv(processed_file, mode='w', header=True, index=False)
-            st.success(f"Entry added for {plant} on {date}, shift {shift}.")
+                # Save or append to the plant's _clean.csv file
+                processed_file = os.path.join(processed_data_path, f"{plant}_clean.csv")
+                if os.path.exists(processed_file):
+                    existing = pd.read_csv(processed_file, parse_dates=['date'])
+                    # Check if this date/shift combo already exists
+                    duplicate = (
+                        (existing['date'].astype(str) == str(date)) &
+                        (existing['shift'] == shift)
+                    ).any()
+                    if duplicate:
+                        st.warning(f"An entry for {plant} on {date}, shift {shift} already exists. Not added.")
+                    else:
+                        entry.to_csv(processed_file, mode='a', header=False, index=False)
+                        st.success(f"Entry added for {plant} on {date}, shift {shift}.")
+                else:
+                    entry.to_csv(processed_file, mode='w', header=True, index=False)
+                    st.success(f"Entry added for {plant} on {date}, shift {shift}.")
+            except Exception as e:
+                st.error(f"Could not add entry: {e}")
 
 st.markdown("---")
 st.caption("Made for Summer Open Hackathon 2025.")
