@@ -48,14 +48,14 @@ def _delta_phrase(val, avg, unit=""):
         return f"{val:,.1f}{unit}, a bit below average"
     return f"{val:,.1f}{unit}"
 
-### --- Main Plots ---
-
 def show_production_trends(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['bottles_produced'].sum()
-    fig = px.line(grouped, x='date', y='bottles_produced', title='Production Trend', labels={'bottles_produced': 'Bottles Produced'})
+    fig = px.line(grouped, x='date', y='bottles_produced', title='Production Trend',
+                  labels={'bottles_produced': 'Bottles Produced'})
     if smoothing:
         grouped['7-day Avg'] = grouped['bottles_produced'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
+    fig.update_yaxes(range=[0, grouped['bottles_produced'].max() * 1.1])
     st.plotly_chart(fig, use_container_width=True)
     avg_val = grouped['bottles_produced'].mean()
     max_val = grouped['bottles_produced'].max()
@@ -71,10 +71,12 @@ def show_production_trends(df, smoothing=True):
 def show_defect_rate_trend(df, smoothing=True):
     grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
     grouped['defect_rate'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
-    fig = px.line(grouped, x='date', y='defect_rate', title='Defect Rate Trend', labels={'defect_rate': 'Defect Rate (%)'})
+    fig = px.line(grouped, x='date', y='defect_rate', title='Defect Rate Trend',
+                  labels={'defect_rate': 'Defect Rate (%)'})
     if smoothing:
         grouped['7-day Avg'] = grouped['defect_rate'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
+    fig.update_yaxes(range=[0, grouped['defect_rate'].max() * 1.1])
     st.plotly_chart(fig, use_container_width=True)
     avg_val = grouped['defect_rate'].mean()
     max_val = grouped['defect_rate'].max()
@@ -89,10 +91,12 @@ def show_defect_rate_trend(df, smoothing=True):
 
 def show_downtime_trend(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['downtime'].sum()
-    fig = px.line(grouped, x='date', y='downtime', title='Downtime Trend', labels={'downtime': 'Downtime (mins)'})
+    fig = px.line(grouped, x='date', y='downtime', title='Downtime Trend',
+                  labels={'downtime': 'Downtime (mins)'})
     if smoothing:
         grouped['7-day Avg'] = grouped['downtime'].rolling(window=7, min_periods=1).mean()
         fig.add_scatter(x=grouped['date'], y=grouped['7-day Avg'], mode='lines', name='7-day Avg', line=dict(dash='dash'))
+    fig.update_yaxes(range=[0, grouped['downtime'].max() * 1.1])
     st.plotly_chart(fig, use_container_width=True)
     avg_val = grouped['downtime'].mean()
     max_val = grouped['downtime'].max()
@@ -116,6 +120,8 @@ def show_shift_breakdown(df):
         color='shift', color_discrete_sequence=px.colors.qualitative.Dark24
     )
     fig.update_traces(text=grouped['Defect %'].round(2).astype(str) + '%', textposition='outside')
+    fig.update_yaxes(range=[0, grouped['Defect %'].max() * 1.1])
+    fig.update_xaxes(type='category')
     st.plotly_chart(fig, use_container_width=True)
     max_shift = grouped.loc[grouped['Defect %'].idxmax(), 'shift']
     min_shift = grouped.loc[grouped['Defect %'].idxmin(), 'shift']
@@ -129,7 +135,6 @@ def show_shift_breakdown(df):
     )
 
 def show_plant_comparison(df):
-    
     st.subheader("Who Led Production Each Day?")
     daily_prod = df.groupby(['date', 'plant'])['bottles_produced'].sum().reset_index()
     daily_prod['leader'] = (daily_prod.groupby('date')['bottles_produced']
@@ -140,6 +145,7 @@ def show_plant_comparison(df):
         labels={'bottles_produced': 'Daily Max Produced', 'plant': 'Leader'},
         title='Plant Leading Daily Production'
     )
+    fig_leader.update_yaxes(range=[0, leaders['bottles_produced'].max() * 1.1])
     st.plotly_chart(fig_leader, use_container_width=True)
     st.info("Shows which plant led daily production. Hover to see the plant and values.")
 
@@ -151,6 +157,8 @@ def show_plant_comparison(df):
         labels={'plant': 'Plant', 'bottles_produced': 'Total Bottles Produced'},
         color='plant', color_discrete_sequence=px.colors.qualitative.Bold
     )
+    fig.update_yaxes(range=[0, grouped['bottles_produced'].max() * 1.1])
+    fig.update_xaxes(type='category')
     st.plotly_chart(fig, use_container_width=True)
     st.dataframe(grouped, use_container_width=True)
     max_plant = grouped.iloc[0]['plant']
@@ -158,7 +166,6 @@ def show_plant_comparison(df):
     st.info(f"{max_plant} produced the most bottles overall, while {min_plant} produced the least.")
 
 def show_defect_comparison(df):
-    
     st.subheader("Who Had Most Defects Each Day?")
     daily_defects = df.groupby(['date', 'plant'])['defect_count'].sum().reset_index()
     daily_defects['leader'] = (daily_defects.groupby('date')['defect_count']
@@ -169,6 +176,7 @@ def show_defect_comparison(df):
         labels={'defect_count': 'Daily Max Defects', 'plant': 'Leader'},
         title='Plant with Most Defects Per Day'
     )
+    fig_def_leader.update_yaxes(range=[0, defect_leaders['defect_count'].max() * 1.1])
     st.plotly_chart(fig_def_leader, use_container_width=True)
     st.info("Shows which plant had the most defects each day. Hover to see values.")
 
@@ -180,6 +188,8 @@ def show_defect_comparison(df):
         labels={'plant': 'Plant', 'defect_count': 'Total Defects'},
         color='plant', color_discrete_sequence=px.colors.qualitative.Pastel
     )
+    fig.update_yaxes(range=[0, grouped['defect_count'].max() * 1.1])
+    fig.update_xaxes(type='category')
     st.plotly_chart(fig, use_container_width=True)
     st.dataframe(grouped, use_container_width=True)
     max_plant = grouped.iloc[0]['plant']
@@ -187,7 +197,7 @@ def show_defect_comparison(df):
     st.info(f"{max_plant} recorded the highest total defects, {min_plant} the least.")
 
 def show_monthly_metric_trends(df):
-    df['month'] = df['date'].dt.to_period('M').astype(str)
+    df['month'] = df['date'].dt.strftime('%b %Y')
     # Production
     st.subheader("Monthly Production by Plant")
     prod_month = df.groupby(['month', 'plant'])['bottles_produced'].sum().reset_index()
@@ -196,6 +206,8 @@ def show_monthly_metric_trends(df):
         barmode='group', labels={'bottles_produced': 'Total Produced', 'month': 'Month'},
         title='Monthly Production by Plant', color_discrete_sequence=px.colors.qualitative.Bold
     )
+    fig1.update_yaxes(range=[0, prod_month['bottles_produced'].max() * 1.1])
+    fig1.update_xaxes(type='category')
     st.plotly_chart(fig1, use_container_width=True)
     if not prod_month.empty:
         top_prod_month = prod_month.loc[prod_month.groupby('month')['bottles_produced'].idxmax()]
@@ -212,6 +224,8 @@ def show_monthly_metric_trends(df):
         barmode='group', labels={'defect_count': 'Total Defects', 'month': 'Month'},
         title='Monthly Defects by Plant', color_discrete_sequence=px.colors.qualitative.Pastel
     )
+    fig2.update_yaxes(range=[0, def_month['defect_count'].max() * 1.1])
+    fig2.update_xaxes(type='category')
     st.plotly_chart(fig2, use_container_width=True)
     if not def_month.empty:
         top_def_month = def_month.loc[def_month.groupby('month')['defect_count'].idxmax()]
@@ -228,6 +242,8 @@ def show_monthly_metric_trends(df):
         barmode='group', labels={'downtime': 'Total Downtime (mins)', 'month': 'Month'},
         title='Monthly Downtime by Plant', color_discrete_sequence=px.colors.qualitative.Set2
     )
+    fig3.update_yaxes(range=[0, dt_month['downtime'].max() * 1.1])
+    fig3.update_xaxes(type='category')
     st.plotly_chart(fig3, use_container_width=True)
     if not dt_month.empty:
         top_dt_month = dt_month.loc[dt_month.groupby('month')['downtime'].idxmax()]
@@ -257,6 +273,8 @@ def show_dayofweek_production(df):
         title="Avg Production by Day",
         color=prod.index, color_discrete_sequence=px.colors.qualitative.Bold
     )
+    fig1.update_yaxes(range=[0, prod.max() * 1.1])
+    fig1.update_xaxes(type='category')
     st.plotly_chart(fig1, use_container_width=True)
     max_prod_day = prod.idxmax()
     min_prod_day = prod.idxmin()
@@ -271,6 +289,8 @@ def show_dayofweek_defects(df):
         title="Avg Defects by Day",
         color=defects.index, color_discrete_sequence=px.colors.qualitative.Pastel
     )
+    fig2.update_yaxes(range=[0, defects.max() * 1.1])
+    fig2.update_xaxes(type='category')
     st.plotly_chart(fig2, use_container_width=True)
     max_def_day = defects.idxmax()
     min_def_day = defects.idxmin()
