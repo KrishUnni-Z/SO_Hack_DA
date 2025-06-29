@@ -122,7 +122,6 @@ def show_downtime_contribution_by_shift(df):
     st.info(f"Shift {top_shift} contributed the most to total downtime in minutes.")
 
 def show_heatmap_defect_rates(df):
-    df = map_shifts(df)
     st.subheader("Defect Rates by Plant and Shift")
     pivot = df.pivot_table(index='plant', columns='shift', values='defect_count', aggfunc='sum').fillna(0)
     fig = px.imshow(
@@ -133,6 +132,7 @@ def show_heatmap_defect_rates(df):
     plant_max = pivot.sum(axis=1).idxmax()
     shift_max = pivot.sum().idxmax()
     st.info(f"Most total defects come from plant {plant_max} and shift {shift_max}.")
+
 
 def show_dayofweek_production(df):
     dow_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
