@@ -3,6 +3,8 @@ import os
 import time
 from pipeline import process_all_files, process_file,safe_process_file
 import viz
+import pandas as pd
+
 ALLOWED_PLANTS = {f"plant_{i}" for i in range(1, 8)}
 
 st.set_page_config(
