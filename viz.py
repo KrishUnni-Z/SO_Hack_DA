@@ -3,24 +3,26 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-def blue_box(text):
+def blue_card(text, title=None):
     st.markdown(f"""
         <div style="
-            background-color: #b8dafc;  /* Much more noticeable blue */
-            border-left: 6px solid #2196F3;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(33,150,243,0.15);
-            padding: 18px 22px;
-            margin-bottom: 18px;
-            font-size: 1.1rem;
-            color: #0d47a1;  /* Deep blue text for contrast */
+            background: linear-gradient(90deg, #2196F3 0%, #6ec6ff 100%);
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(33,150,243,0.18);
+            padding: 22px 28px;
+            margin-bottom: 24px;
+            color: #fff;
             font-family: 'Segoe UI', 'Roboto', sans-serif;
+            font-size: 1.15rem;
             font-weight: 500;
-            line-height: 1.5;
+            position: relative;
         ">
-            {text}
+            <span style="font-size:1.5rem;vertical-align:middle;">&#9432;</span>
+            {f"<span style='font-size:1.2rem;font-weight:bold;margin-left:8px;'>{title}</span><br>" if title else ""}
+            <span style="margin-left:32px;">{text}</span>
         </div>
     """, unsafe_allow_html=True)
+
 
 
 def load_processed_data(processed_data_path='data/processed'):
