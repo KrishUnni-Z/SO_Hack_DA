@@ -1,44 +1,59 @@
 import os
-import json
 import pandas as pd
+import json
 
-raw_data_path = 'data/raw'
-processed_data_path = 'data/processed'
+# Load the mapping.json once (do this at the top of the file)
+with open("mapping.json", "r") as f:
+    mapping = json.load(f)
 
-# Load the mapping.json ONCE at module load
-with open('config/mapping.json', 'r') as f:
-    plant_maps = json.load(f)
+PLANT_FILES = set(mapping.keys())
 
-REQUIRED_COLS = ['date', 'shift', 'bottles_produced', 'defect_count', 'downtime']
+def get_plant_name_from_filename(filename):
+    # Assumes plant file format is plant_X.xlsx, not case sensitive
+    fname = filename.lower().replace(".xlsx", "")
+    for plant in PLANT_FILES:
+        if plant.lower() == fname:
+            return plant
+    return None
 
-def process_file(file_name):
+def process_file(file_name, raw_data_path='data/raw', processed_data_path='data/processed'):
+    plant_name = get_plant_name_from_filename(file_name)
+    if plant_name is None:
+        # Not a plant file, silently ignore
+        print(f"Skipped unknown file: {file_name}")
+        return None
+
+    mapping_dict = mapping[plant_name]
     file_path = os.path.join(raw_data_path, file_name)
     df = pd.read_excel(file_path)
-    df.columns = [col.strip() for col in df.columns]
+    # Make all columns lower case for matching
+    df.columns = [c.lower().strip() for c in df.columns]
 
-    plant_id = file_name.replace('.xlsx', '').lower()
-    if plant_id not in plant_maps:
-        raise ValueError(f"Unknown plant: {plant_id}. Add it to mapping.json.")
+    # Build a reverse mapping (case-insensitive)
+    reverse_map = {k.lower(): v for k, v in mapping_dict.items()}
+    new_cols = {}
+    for col in df.columns:
+        if col in reverse_map:
+            new_cols[col] = reverse_map[col]
+        else:
+            raise ValueError(f"Missing expected column '{col}' in {file_name}")
 
-    # Build a local column mapping, making both sides lower-case for safety
-    map_this = {k.lower(): v.lower() for k, v in plant_maps[plant_id].items()}
-    # Lower-case the DataFrame columns for robust matching
-    df.columns = [col.lower() for col in df.columns]
-    df = df.rename(columns=map_this)
-
-    # Check for missing columns
-    for col in REQUIRED_COLS:
-        if col not in df.columns:
-            raise ValueError(
-                f"Missing column: '{col}' in file '{file_name}'.\nColumns present: {list(df.columns)}"
-            )
-
+    df = df.rename(columns=new_cols)
+    # Add any additional columns if needed, e.g. day_of_week
     df['date'] = pd.to_datetime(df['date'])
     df['day_of_week'] = df['date'].dt.day_name()
-    save_name = file_name.replace('.xlsx', '_clean.csv')
-    df.to_csv(os.path.join(processed_data_path, save_name), index=False)
+    # Save as clean file
+    out_file = os.path.join(processed_data_path, f"{plant_name}_clean.csv")
+    df.to_csv(out_file, index=False)
+    return plant_name
 
-def process_all_files():
-    for file in os.listdir(raw_data_path):
-        if file.endswith('.xlsx'):
-            process_file(file)
+def process_all_files(raw_data_path='data/raw', processed_data_path='data/processed'):
+    all_files = [f for f in os.listdir(raw_data_path) if f.endswith('.xlsx')]
+    replaced = []
+    for file in all_files:
+        plant_name = get_plant_name_from_filename(file)
+        if plant_name:
+            if os.path.exists(os.path.join(processed_data_path, f"{plant_name}_clean.csv")):
+                replaced.append(plant_name)
+            process_file(file, raw_data_path, processed_data_path)
+    return replaced
