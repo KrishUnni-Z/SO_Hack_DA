@@ -136,9 +136,17 @@ def show_heatmap_defect_rates(df):
         labels={'color': 'Defects'}, title="Total Defects by Plant & Shift"
     )
     st.plotly_chart(fig, use_container_width=True)
+    
+    # 1. Worst single plant-shift combination
+    max_cell = pivot.stack().idxmax()
+    max_value = pivot.stack().max()
+    st.info(f"WORST SINGLE COMBINATION: Most defects come from plant {max_cell[0]} and shift {max_cell[1]} ({max_value} defects).")
+    
+    # 2. Overall highest plant and shift (by sum)
     plant_max = pivot.sum(axis=1).idxmax()
     shift_max = pivot.sum().idxmax()
-    st.info(f"Most total defects come from plant {plant_max} and shift {shift_max}.")
+    st.info(f"OVERALL MOST DEFECTS: Most total defects come from plant {plant_max} (across all shifts) and shift {shift_max} (across all plants).")
+
 
 def show_dayofweek_production(df):
     dow_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
