@@ -49,3 +49,12 @@ def process_all_files(raw_data_path='data/raw', processed_data_path='data/proces
                 process_file(file, raw_data_path, processed_data_path)
                 processed_count += 1
     return processed_count
+def safe_process_file(file_name, raw_data_path='data/raw', processed_data_path='data/processed'):
+    try:
+        process_file(file_name, raw_data_path, processed_data_path)
+        return None  # Success
+    except ValueError as e:
+        return str(e)
+    except Exception as ex:
+        return f"Unexpected error: {ex}"
+
