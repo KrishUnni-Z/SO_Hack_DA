@@ -129,7 +129,7 @@ def show_shift_breakdown(df):
     )
 
 def show_plant_comparison(df):
-    # Daily Plant Leaders Plot
+    
     st.subheader("Who Led Production Each Day?")
     daily_prod = df.groupby(['date', 'plant'])['bottles_produced'].sum().reset_index()
     daily_prod['leader'] = (daily_prod.groupby('date')['bottles_produced']
@@ -158,7 +158,7 @@ def show_plant_comparison(df):
     st.info(f"{max_plant} produced the most bottles overall, while {min_plant} produced the least.")
 
 def show_defect_comparison(df):
-    # Repeat for defects
+    
     st.subheader("Who Had Most Defects Each Day?")
     daily_defects = df.groupby(['date', 'plant'])['defect_count'].sum().reset_index()
     daily_defects['leader'] = (daily_defects.groupby('date')['defect_count']
