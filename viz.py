@@ -6,14 +6,14 @@ import plotly.express as px
 def blue_box(text):
     st.markdown(f"""
         <div style="
-            background-color: #e3f0fc;
+            background-color: #b8dafc;  /* Much more noticeable blue */
             border-left: 6px solid #2196F3;
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(33,150,243,0.08);
+            box-shadow: 0 2px 8px rgba(33,150,243,0.15);
             padding: 18px 22px;
             margin-bottom: 18px;
             font-size: 1.1rem;
-            color: #174ea6;
+            color: #0d47a1;  /* Deep blue text for contrast */
             font-family: 'Segoe UI', 'Roboto', sans-serif;
             font-weight: 500;
             line-height: 1.5;
@@ -21,6 +21,7 @@ def blue_box(text):
             {text}
         </div>
     """, unsafe_allow_html=True)
+
 
 
 
