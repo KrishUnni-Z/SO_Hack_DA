@@ -5,10 +5,23 @@ import plotly.express as px
 
 def blue_box(text):
     st.markdown(f"""
-        <div style="background-color:#e7f3fe; border-left:6px solid #2196F3; padding:8px; margin-bottom:10px;">
-        <span style="color:#1a237e;">{text}</span>
+        <div style="
+            background: linear-gradient(90deg, #e3f0fc 0%, #f5fbff 100%);
+            border-left: 6px solid #2196F3;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.08);
+            padding: 18px 22px;
+            margin-bottom: 18px;
+            font-size: 1.1rem;
+            color: #174ea6;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            font-weight: 500;
+            line-height: 1.5;
+        ">
+            {text}
         </div>
     """, unsafe_allow_html=True)
+
 
 def load_processed_data(processed_data_path='data/processed'):
     all_data = []
