@@ -5,16 +5,37 @@ import plotly.express as px
 
 # --- Loaders & Filters ---
 
+import os
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+
 def load_processed_data(processed_data_path='data/processed'):
     all_data = []
+    files_loaded = []
     for file in os.listdir(processed_data_path):
         if file.endswith('_clean.csv'):
             df = pd.read_csv(os.path.join(processed_data_path, file))
             df['plant'] = file.replace('_clean.csv', '')
             all_data.append(df)
+            files_loaded.append(file)
     if all_data:
         combined = pd.concat(all_data, ignore_index=True)
+        st.write("Loaded files:", files_loaded)
+        st.write("Combined shape:", combined.shape)
+        st.write("Combined columns:", list(combined.columns))
+        # Check for required columns
+        required_cols = {'date', 'shift', 'bottles_produced', 'defect_count', 'downtime'}
+        missing = required_cols - set(combined.columns)
+        if missing:
+            st.error(f"Missing columns in processed data: {missing}")
+            return pd.DataFrame()
         combined['date'] = pd.to_datetime(combined['date'])
+        # Show sample
+        st.dataframe(combined.head(10))
+        return combined
+    else:
+        st.warning("No _clean.csv files found in processed folder.")
     return pd.DataFrame()
 
 def filter_data(df):
