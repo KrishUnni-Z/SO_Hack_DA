@@ -167,6 +167,10 @@ elif menu == "Upload Data":
 elif menu == "Manual Entry":
     st.header("Manual Data Entry")
     st.info("Enter new data for any plant below. This is for plants that can't upload Excel files.")
+    st.markdown(
+    "<small>Shifts can be entered as <b>A, B, C</b> or as <b>1, 2, 3</b>. "
+    "They will be standardised automatically.</small>",
+    unsafe_allow_html=True )
 
     with st.form("manual_entry_form"):
         plant = st.selectbox("Plant", sorted(list(ALLOWED_PLANTS)))
