@@ -62,24 +62,6 @@ It provides instant visualisation, cross-plant comparison, and actionable operat
 
 ## Local Setup
 
-1. **Clone or download this repository.**
-2. **Install Python 3.9+ and dependencies:**
-    ```
-    pip install -r requirements.txt
-    ```
-3. **Run the app:**
-    ```
-    streamlit run app.py
-    ```
-4. **Open your browser at:**
-    ```
-    http://localhost:8501
-    ```
-
----
-
-## Local Setup
-
 1. **Clone or download this repository**
 2. **Install Python 3.9+ and dependencies:**
     ```sh
