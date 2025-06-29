@@ -169,55 +169,65 @@ elif menu == "Upload Data":
 elif menu == "Manual Entry":
     st.header("Manual Data Entry")
     st.info("Enter new data for any plant below. This is for plants that can't upload Excel files.")
+
     st.markdown(
-    "<small>Shifts can be entered as <b>A, B, C</b> or as <b>1, 2, 3</b>. "
-    "They will be standardised automatically.</small>",
-    unsafe_allow_html=True )
+        "<small>Shifts can be entered as <b>A, B, C</b> or as <b>1, 2, 3</b>. They will be standardised automatically.</small>",
+        unsafe_allow_html=True
+    )
 
     with st.form("manual_entry_form"):
         plant = st.selectbox("Plant", sorted(list(ALLOWED_PLANTS)))
         date = st.date_input("Date")
-        shift = st.selectbox("Shift", ["A", "B", "C"])
-        bottles_produced = st.number_input("Bottles Produced", min_value=0, value=0)
+        shift = st.selectbox("Shift", ["A", "B", "C", "1", "2", "3"])
+        bottles_produced = st.number_input("Bottles Produced", min_value=1, value=1)
         defect_count = st.number_input("Defect Count", min_value=0, value=0)
         downtime = st.number_input("Downtime (mins)", min_value=0, value=0)
         submitted = st.form_submit_button("Submit Entry")
 
     if submitted:
-        # Basic validation
-        if not plant or not date or not shift:
+        # Prevent invalid numbers
+        if bottles_produced < 1:
+            st.error("Bottles produced must be at least 1.")
+        elif defect_count < 0 or downtime < 0:
+            st.error("Defect count and downtime cannot be negative.")
+        elif not plant or not date or not shift:
             st.error("All fields are required.")
         else:
             try:
-                # Handle date safely
+                # Standardise shift
+                shift_map = {'1': 'A', '2': 'B', '3': 'C', 'A': 'A', 'B': 'B', 'C': 'C'}
+                shift_std = shift_map.get(str(shift), shift)
                 day_of_week = pd.to_datetime(str(date)).day_name()
                 entry = pd.DataFrame([{
                     "date": date,
-                    "shift": shift,
+                    "shift": shift_std,
                     "bottles_produced": bottles_produced,
                     "defect_count": defect_count,
                     "downtime": downtime,
                     "day_of_week": day_of_week
                 }])
-                # Save or append to the plant's _clean.csv file
                 processed_file = os.path.join(processed_data_path, f"{plant}_clean.csv")
+                duplicate = False
                 if os.path.exists(processed_file):
                     existing = pd.read_csv(processed_file, parse_dates=['date'])
-                    # Check if this date/shift combo already exists
                     duplicate = (
                         (existing['date'].astype(str) == str(date)) &
-                        (existing['shift'] == shift)
+                        (existing['shift'] == shift_std)
                     ).any()
-                    if duplicate:
-                        st.warning(f"An entry for {plant} on {date}, shift {shift} already exists. Not added.")
-                    else:
-                        entry.to_csv(processed_file, mode='a', header=False, index=False)
-                        st.success(f"Entry added for {plant} on {date}, shift {shift}.")
+                if duplicate:
+                    st.warning(f"An entry for {plant} on {date}, shift {shift_std} already exists. Not added.")
                 else:
-                    entry.to_csv(processed_file, mode='w', header=True, index=False)
-                    st.success(f"Entry added for {plant} on {date}, shift {shift}.")
+                    entry.to_csv(processed_file, mode='a' if os.path.exists(processed_file) else 'w',
+                                 header=not os.path.exists(processed_file), index=False)
+                    st.success(f"Entry added for {plant} on {date}, shift {shift_std}.")
+                    st.balloons()
+                    # Show last 5 entries for that plant
+                    recent = pd.read_csv(processed_file, parse_dates=['date']).sort_values('date', ascending=False).head(5)
+                    st.markdown("#### Last 5 Entries for this Plant")
+                    st.dataframe(recent, use_container_width=True)
             except Exception as e:
                 st.error(f"Could not add entry: {e}")
+
 
 st.markdown("---")
 st.caption("Made for Summer Open Hackathon 2025.")
