@@ -341,9 +341,6 @@ def show_kpi_insights(df):
     st.markdown("---")
     show_downtime_defect_correlation(df)
     st.markdown("---")
-    st.subheader("Weekday Trends")
-    show_dayofweek_production(df)
-    show_dayofweek_defects(df)
 
 def show_downtime_contribution_by_shift(df):
     st.subheader("Downtime Contribution by Shift")
