@@ -65,7 +65,7 @@ It provides instant visualisation, cross-plant comparison, and operational insig
 1. **Clone or download this repository.**
 2. **Install Python 3.9+ and dependencies:**
     ```
-    pip install streamlit plotly pandas openpyxl
+    pip install -r requirements.txt
     ```
 3. **Run the app:**
     ```
