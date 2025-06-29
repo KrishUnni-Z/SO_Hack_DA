@@ -255,12 +255,16 @@ def show_dayofweek_production(df):
         x=prod.index, y=prod.values, 
         labels={'x': 'Day of Week', 'y': 'Avg Bottles Produced'},
         title="Avg Production by Day",
-        color=prod.index, color_discrete_sequence=px.colors.qualitative.Bold
+        color=prod.index, color_discrete_sequence=px.colors.qualitative.Bold,
+        category_orders={'x': dow_order}
     )
+    fig1.update_xaxes(type='category', categoryorder='array', categoryarray=dow_order)
+
     st.plotly_chart(fig1, use_container_width=True)
     max_prod_day = prod.idxmax()
     min_prod_day = prod.idxmin()
     st.info(f"Production is highest on {max_prod_day} and lowest on {min_prod_day}.")
+
 
 def show_dayofweek_defects(df):
     dow_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
