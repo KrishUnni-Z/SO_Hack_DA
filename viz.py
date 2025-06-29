@@ -14,10 +14,9 @@ def load_processed_data(processed_data_path='data/processed'):
     if all_data:
         combined = pd.concat(all_data, ignore_index=True)
         combined['date'] = pd.to_datetime(combined['date'])
-        if 'shift' in combined.columns:
-            combined = map_shifts(combined)
         return combined
     return pd.DataFrame()
+
 
 def filter_data(df):
     plants = df['plant'].unique()
