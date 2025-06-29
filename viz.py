@@ -4,13 +4,6 @@ import streamlit as st
 import plotly.express as px
 import numpy as np
 
-# Utility: Always use this to map numeric shift codes to 'A', 'B', 'C'
-def map_shifts(df):
-    shift_map = {'1': 'A', '2': 'B', '3': 'C', 1: 'A', 2: 'B', 3: 'C'}
-    if 'shift' in df.columns:
-        df['shift'] = df['shift'].astype(str).map(shift_map).fillna(df['shift'])
-    return df
-
 def load_processed_data(processed_data_path='data/processed'):
     all_data = []
     for file in os.listdir(processed_data_path):
@@ -86,7 +79,6 @@ def show_downtime_trend(df, smoothing=True):
     st.info(f"Average Downtime: {avg_val:.1f} mins | Highest: {max_val:.1f} mins on {max_date.date()} | Lowest: {min_val:.1f} mins on {min_date.date()}")
 
 def show_shift_breakdown(df):
-    df = map_shifts(df)
     st.subheader("Shift-wise Defect % Breakdown")
     grouped = df.groupby('shift').agg({'bottles_produced': 'sum', 'defect_count': 'sum'}).reset_index()
     grouped['Defect %'] = (grouped['defect_count'] / grouped['bottles_produced']) * 100
@@ -105,6 +97,7 @@ def show_shift_breakdown(df):
     if not rare_shifts.empty:
         msg += f" Note: Shifts {', '.join(rare_shifts.index)} have much fewer records and their rates may not be reliable."
     st.info(msg)
+
 
 def show_plant_comparison(df):
     st.subheader("Total Production by Plant")
