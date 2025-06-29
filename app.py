@@ -57,7 +57,7 @@ st.markdown("Unified, real-time manufacturing analytics for all plants. **Upload
 
 with st.sidebar:
     st.markdown("## 🧭 Navigation")
-    menu = st.radio("", ["Dashboard", "Upload Data"])
+    menu = st.radio("", ["Dashboard", "Upload Data", "Manual Entry"])
 
     st.markdown("---")
     st.markdown("## 📂 Data Upload")
@@ -163,6 +163,37 @@ if menu == "Dashboard":
 
 elif menu == "Upload Data":
     st.info("Use the sidebar to upload new plant data files.")
+elif menu == "Manual Entry":
+    st.header("Manual Data Entry")
+    st.info("Enter new data for any plant below. This is for plants that can't upload Excel files.")
+
+    with st.form("manual_entry_form"):
+        plant = st.selectbox("Plant", sorted(list(ALLOWED_PLANTS)))
+        date = st.date_input("Date")
+        shift = st.selectbox("Shift", ["A", "B", "C"])
+        bottles_produced = st.number_input("Bottles Produced", min_value=0, value=0)
+        defect_count = st.number_input("Defect Count", min_value=0, value=0)
+        downtime = st.number_input("Downtime (mins)", min_value=0, value=0)
+        submitted = st.form_submit_button("Submit Entry")
+
+    if submitted:
+        day_of_week = pd.to_datetime(date).day_name()
+        entry = pd.DataFrame([{
+            "date": date,
+            "shift": shift,
+            "bottles_produced": bottles_produced,
+            "defect_count": defect_count,
+            "downtime": downtime,
+            "day_of_week": day_of_week
+        }])
+        # Save or append to the plant's _clean.csv file
+        processed_file = os.path.join(processed_data_path, f"{plant}_clean.csv")
+        if os.path.exists(processed_file):
+            entry.to_csv(processed_file, mode='a', header=False, index=False)
+        else:
+            entry.to_csv(processed_file, mode='w', header=True, index=False)
+        st.success(f"Entry added for {plant} on {date}.")
+
 
 st.markdown("---")
 st.caption("Made for Summer Open Hackathon 2025.")
