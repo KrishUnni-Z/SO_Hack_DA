@@ -16,15 +16,14 @@ It provides instant visualisation, cross-plant comparison, and operational insig
 
 ## Features
 
-- **Drag-and-drop Excel upload** (.xlsx format)
-- **Automated data cleaning and mapping** (`config/mapping.json`)
-- **Visualisation:**
-    - Production, defects, and downtime trends (daily/monthly)
-    - Performance by shift and day of week
-    - Plant leaderboards for production and defects
-    - KPI highlights and correlation analysis
-- **Robust error handling** – clear messages for missing or invalid data
-- **Modern interactive UI** – all visualisations built with Plotly
+- **Simple Excel upload** — drag and drop `.xlsx` files from any plant, no manual formatting required
+- **Automatic data cleaning and mapping** — adapts to each plant’s column names and structure (`config/mapping.json`)
+- **Instant visual insights** — track trends in production, defects, and downtime by day, shift, or plant
+- **Live leaderboards and KPIs** — spotlight top and bottom performers, show key metrics at a glance
+- **Built-in correlation and pattern detection** — see links between downtime and defects, all auto-analysed
+- **Clear error handling** — immediate, actionable feedback on missing or invalid data
+- **Modern, interactive UI** — explore all results through fast, interactive Plotly charts
+
 
 ---
 
@@ -42,6 +41,9 @@ It provides instant visualisation, cross-plant comparison, and operational insig
 (Mapping is automatic even if column names differ—see `config/mapping.json`.)
 
 ---
+
+
+
 
 ## Project Structure
 
