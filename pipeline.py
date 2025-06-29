@@ -6,7 +6,7 @@ raw_data_path = 'data/raw'
 processed_data_path = 'data/processed'
 
 # Load the mapping.json ONCE at module load
-with open('mapping.json', 'r') as f:
+with open('config/mapping.json', 'r') as f:
     plant_maps = json.load(f)
 
 REQUIRED_COLS = ['date', 'shift', 'bottles_produced', 'defect_count', 'downtime']
@@ -16,8 +16,6 @@ def process_file(file_name):
     df = pd.read_excel(file_path)
     df.columns = [col.strip() for col in df.columns]
 
-    # Infer plant name from file name
-    # Assume: 'plant_3.xlsx' → 'plant_3'
     plant_id = file_name.replace('.xlsx', '').lower()
     if plant_id not in plant_maps:
         raise ValueError(f"Unknown plant: {plant_id}. Add it to mapping.json.")
