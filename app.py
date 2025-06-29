@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 import time
-from pipeline import process_all_files, process_file
+from pipeline import process_all_files, process_file,safe_process_file
 import viz
 
 st.set_page_config(
@@ -68,8 +68,11 @@ with st.sidebar:
         st.success(f"✅ {uploaded_file.name} uploaded successfully.")
         with st.spinner("Processing file..."):
             time.sleep(1)
-            process_file(uploaded_file.name)
-        st.success("File processed and saved.")
+            error = safe_process_file(uploaded_file.name)
+        if error:
+            st.error(f"❌ File not processed: {error}")
+        else:
+            st.success("File processed and saved.")
 
     raw_files = [f for f in os.listdir(raw_data_path) if f.endswith('.xlsx')]
     processed_files = [f for f in os.listdir(processed_data_path) if f.endswith('_clean.csv')]
