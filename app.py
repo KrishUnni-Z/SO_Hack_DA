@@ -176,17 +176,20 @@ elif menu == "Manual Entry":
         defect_count = st.number_input("Defect Count", min_value=0, value=0)
         downtime = st.number_input("Downtime (mins)", min_value=0, value=0)
         submitted = st.form_submit_button("Submit Entry")
-
     if submitted:
-        day_of_week = pd.to_datetime(date).day_name()
-        entry = pd.DataFrame([{
-            "date": date,
-            "shift": shift,
-            "bottles_produced": bottles_produced,
-            "defect_count": defect_count,
-            "downtime": downtime,
-            "day_of_week": day_of_week
-        }])
+        if date is None or shift is None or bottles_produced is None or defect_count is None or downtime is None:
+            st.error("All fields are required.")
+        else:
+            try:
+                day_of_week = pd.to_datetime(date).day_name()
+                entry = pd.DataFrame([{
+                    "date": date,
+                    "shift": shift,
+                    "bottles_produced": bottles_produced,
+                    "defect_count": defect_count,
+                    "downtime": downtime,
+                    "day_of_week": day_of_week
+                }])
         # Save or append to the plant's _clean.csv file
         processed_file = os.path.join(processed_data_path, f"{plant}_clean.csv")
         if os.path.exists(processed_file):
