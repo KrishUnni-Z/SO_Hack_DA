@@ -3,6 +3,7 @@ import os
 import time
 from pipeline import process_all_files, process_file,safe_process_file
 import viz
+ALLOWED_PLANTS = {f"plant_{i}" for i in range(1, 8)}
 
 st.set_page_config(
     page_title="Factory Metrics Dashboard",
