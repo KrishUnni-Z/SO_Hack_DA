@@ -3,7 +3,7 @@ import pandas as pd
 import json
 
 # Load the mapping.json once (do this at the top of the file)
-with open("mapping.json", "r") as f:
+with open("config/mapping.json", "r") as f:
     mapping = json.load(f)
 
 PLANT_FILES = set(mapping.keys())
