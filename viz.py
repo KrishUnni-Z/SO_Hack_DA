@@ -217,8 +217,8 @@ def show_defect_comparison(df):
 
 def show_monthly_metric_trends(df):
     df['month'] = df['date'].dt.to_period('M').astype(str)
-    # Sort months
-    months_sorted = sorted(df['month'].unique())
+    months_sorted = sorted(df['month'].unique(), key=lambda x: pd.Period(x, freq='M'))  # sort as periods not strings
+
     # Production
     st.subheader("Monthly Production by Plant")
     prod_month = df.groupby(['month', 'plant'])['bottles_produced'].sum().reset_index()
@@ -227,8 +227,11 @@ def show_monthly_metric_trends(df):
     fig1 = px.bar(
         prod_month, x='month', y='bottles_produced', color='plant',
         barmode='group', labels={'bottles_produced': 'Total Produced', 'month': 'Month'},
-        title='Monthly Production by Plant', color_discrete_sequence=px.colors.qualitative.Bold
+        title='Monthly Production by Plant', color_discrete_sequence=px.colors.qualitative.Bold,
+        category_orders={'month': months_sorted}
     )
+    fig1.update_xaxes(type='category', categoryorder='array', categoryarray=months_sorted)
+    fig1.update_yaxes(rangemode='normal')  # Allow auto-scale for small variations
     st.plotly_chart(fig1, use_container_width=True)
     if not prod_month.empty:
         top_prod_month = prod_month.loc[prod_month.groupby('month')['bottles_produced'].idxmax()]
@@ -245,8 +248,11 @@ def show_monthly_metric_trends(df):
     fig2 = px.bar(
         def_month, x='month', y='defect_count', color='plant',
         barmode='group', labels={'defect_count': 'Total Defects', 'month': 'Month'},
-        title='Monthly Defects by Plant', color_discrete_sequence=px.colors.qualitative.Pastel
+        title='Monthly Defects by Plant', color_discrete_sequence=px.colors.qualitative.Pastel,
+        category_orders={'month': months_sorted}
     )
+    fig2.update_xaxes(type='category', categoryorder='array', categoryarray=months_sorted)
+    fig2.update_yaxes(rangemode='normal')
     st.plotly_chart(fig2, use_container_width=True)
     if not def_month.empty:
         top_def_month = def_month.loc[def_month.groupby('month')['defect_count'].idxmax()]
@@ -263,8 +269,11 @@ def show_monthly_metric_trends(df):
     fig3 = px.bar(
         dt_month, x='month', y='downtime', color='plant',
         barmode='group', labels={'downtime': 'Total Downtime (mins)', 'month': 'Month'},
-        title='Monthly Downtime by Plant', color_discrete_sequence=px.colors.qualitative.Set2
+        title='Monthly Downtime by Plant', color_discrete_sequence=px.colors.qualitative.Set2,
+        category_orders={'month': months_sorted}
     )
+    fig3.update_xaxes(type='category', categoryorder='array', categoryarray=months_sorted)
+    fig3.update_yaxes(rangemode='normal')
     st.plotly_chart(fig3, use_container_width=True)
     if not dt_month.empty:
         top_dt_month = dt_month.loc[dt_month.groupby('month')['downtime'].idxmax()]
@@ -272,6 +281,7 @@ def show_monthly_metric_trends(df):
         plant = top_dt_month['plant'].iloc[-1]
         val = top_dt_month['downtime'].iloc[-1]
         st.info(f"In {month}, {plant} experienced the most downtime: {val:,.0f} mins.")
+
 
 def show_dayofweek_production(df):
     dow_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
