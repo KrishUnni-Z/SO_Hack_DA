@@ -110,4 +110,61 @@ if menu == "Dashboard":
                 st.markdown('<div class="metric-card"><div class="metric-title">Total Bottles</div><div class="metric-value">{:,}</div><div class="metric-subtitle">Produced</div></div>'.format(
                     int(df_filtered['bottles_produced'].sum())), unsafe_allow_html=True)
             with col3:
-                defect_rate = (df_filtered['defect_count'].sum() / df_filtered['bottles_produced'].sum()) * 100 if df_filtered['bottles
+                defect_rate = (df_filtered['defect_count'].sum() / df_filtered['bottles_produced'].sum()) * 100 if df_filtered['bottles_produced'].sum() > 0 else 0
+                st.markdown('<div class="metric-card"><div class="metric-title">Defect Rate</div><div class="metric-value">{:.2f}%</div><div class="metric-subtitle">Rejects</div></div>'.format(
+                    defect_rate), unsafe_allow_html=True)
+            with col4:
+                avg_downtime = df_filtered['downtime'].mean()
+                st.markdown('<div class="metric-card"><div class="metric-title">Avg Downtime</div><div class="metric-value">{:.1f}</div><div class="metric-subtitle">minutes</div></div>'.format(
+                    avg_downtime), unsafe_allow_html=True)
+
+            st.markdown("---")
+            st.markdown("### Plant Comparison")
+            viz.show_plant_comparison(df_filtered)
+
+        with tabs[1]:
+            st.header("Trends & Breakdowns")
+            smoothing = st.checkbox("Show Smoothed Trend Lines", value=True)
+            data = df_filtered.copy()
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("**Production Trend by Date**")
+                viz.show_production_trends(data, smoothing=smoothing)
+            with col2:
+                st.markdown("**Defect Rate Trend by Date**")
+                viz.show_defect_rate_trend(data, smoothing=smoothing)
+
+            st.markdown("---")
+            col3, col4 = st.columns(2)
+            with col3:
+                st.markdown("**Downtime Trend by Date**")
+                viz.show_downtime_trend(data, smoothing=smoothing)
+            with col4:
+                st.markdown("**Shift-wise Breakdown**")
+                viz.show_shift_breakdown(data)
+
+            st.markdown("---")
+            st.markdown("**Day of Week Analysis**")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                viz.show_dayofweek_production(data)
+            with col_b:
+                viz.show_dayofweek_defects(data)
+
+        with tabs[2]:
+            st.header("Insights & Highlights")
+            viz.show_kpi_insights(df_filtered)
+            viz.show_downtime_contribution_by_shift(df_filtered)
+            viz.show_heatmap_defect_rates(df_filtered)
+            viz.show_monthly_summary_table(df_filtered)
+            viz.show_downtime_defect_correlation(df_filtered)
+
+    else:
+        st.info("No processed data to display. Please upload plant data files.")
+
+elif menu == "Upload Data":
+    st.info("Use the sidebar to upload new plant data files.")
+
+st.markdown("---")
+st.caption("Made for Summer Open Hackathon 2025.")
