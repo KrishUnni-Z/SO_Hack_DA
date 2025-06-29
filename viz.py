@@ -140,12 +140,18 @@ def show_heatmap_defect_rates(df):
     # 1. Worst single plant-shift combination
     max_cell = pivot.stack().idxmax()
     max_value = pivot.stack().max()
-    st.info(f"WORST SINGLE COMBINATION: Most defects come from plant {max_cell[0]} and shift {max_cell[1]} ({max_value} defects).")
-    
+    st.info(
+        f"**Highest defect hotspot:** Plant **{max_cell[0]}**, shift **{max_cell[1]}** had the most defects in a single combination ({max_value:,} defects)."
+    )
+
     # 2. Overall highest plant and shift (by sum)
     plant_max = pivot.sum(axis=1).idxmax()
     shift_max = pivot.sum().idxmax()
-    st.info(f"OVERALL MOST DEFECTS: Most total defects come from plant {plant_max} (across all shifts) and shift {shift_max} (across all plants).")
+    st.info(
+        f"**Most problematic plant overall:** {plant_max} recorded the most total defects across all shifts.  \n"
+        f"**Most problematic shift overall:** Shift {shift_max} had the highest total defects across all plants."
+    )
+
 
 
 def show_dayofweek_production(df):
