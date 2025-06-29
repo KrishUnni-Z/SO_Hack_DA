@@ -23,8 +23,6 @@ def blue_box(text):
     """, unsafe_allow_html=True)
 
 
-
-
 def load_processed_data(processed_data_path='data/processed'):
     all_data = []
     for file in os.listdir(processed_data_path):
@@ -70,6 +68,9 @@ def show_production_trends(df, smoothing=True):
         f"The highest daily production was {max_v:,} on {max_date}, "
         f"and the lowest was {min_v:,} on {min_date}."
     )
+
+    st.info("Average daily downtime was 370.1 minutes. Highest was 586.5 mins on 2025-03-24, lowest was 189.6 mins on 2025-02-28.")
+
 
 def show_defect_rate_trend(df, smoothing=True):
     grouped = df.groupby('date').agg({'defect_count': 'sum', 'bottles_produced': 'sum'}).reset_index()
