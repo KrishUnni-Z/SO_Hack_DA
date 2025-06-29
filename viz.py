@@ -113,7 +113,7 @@ def show_plant_comparison(df):
     st.info(f"{max_plant} produced the most bottles overall, while {min_plant} produced the least.")
 
 def show_downtime_contribution_by_shift(df):
-    df = map_shifts(df)
+    
     st.subheader("Downtime Contribution by Shift")
     grouped = df.groupby('shift')['downtime'].sum().reset_index()
     fig = px.pie(grouped, names='shift', values='downtime', title='Share of Total Downtime by Shift')
