@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-def blue_card(text, title=None):
+def blue_box(text, title=None):
     st.markdown(f"""
         <div style="
             background: linear-gradient(90deg, #2196F3 0%, #6ec6ff 100%);
