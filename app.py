@@ -91,15 +91,10 @@ with st.sidebar:
             st.write(f"✅ Processed: {plant_name}")
 
 if menu == "Dashboard":
-    # --- Force process all files (in case anything new in raw, or user reloads app) ---
     with st.spinner("Processing existing files..."):
         time.sleep(1)
         process_all_files()
     st.success("All available data processed successfully.")
-
-    # Show file status for debugging
-    st.caption(f"RAW: {os.listdir(raw_data_path)}")
-    st.caption(f"PROCESSED: {os.listdir(processed_data_path)}")
 
     df = viz.load_processed_data()
     if not df.empty:
