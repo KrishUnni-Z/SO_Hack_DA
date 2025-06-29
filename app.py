@@ -35,15 +35,6 @@ st.markdown("""
     font-size: 0.9em;
     color: #6c757d;
 }
-.blue-box {
-    background-color: #e6f0fa;
-    border-left: 4px solid #0072b5;
-    padding: 10px 18px;
-    border-radius: 6px;
-    margin-top: 8px;
-    margin-bottom: 12px;
-    font-size: 1em;
-}
 </style>
 """, unsafe_allow_html=True)
 
