@@ -30,43 +30,6 @@ def filter_data(df):
     ]
     return filtered_df
 
-### --- Main Plots ---
-
-def show_monthly_metric_trends(df):
-    df['month'] = df['date'].dt.to_period('M').astype(str)
-    # Production
-    st.subheader("Monthly Production by Plant")
-    prod_month = df.groupby(['month', 'plant'])['bottles_produced'].sum().reset_index()
-    fig1 = px.bar(
-        prod_month, x='month', y='bottles_produced', color='plant',
-        barmode='group', labels={'bottles_produced': 'Total Produced', 'month': 'Month'},
-        title='Monthly Production by Plant', color_discrete_sequence=px.colors.qualitative.Bold
-    )
-    st.plotly_chart(fig1, use_container_width=True)
-    st.info("See how production output trends by month for each plant—use this to spot seasonal or plant-level shifts.")
-
-    # Defects
-    st.subheader("Monthly Defects by Plant")
-    def_month = df.groupby(['month', 'plant'])['defect_count'].sum().reset_index()
-    fig2 = px.bar(
-        def_month, x='month', y='defect_count', color='plant',
-        barmode='group', labels={'defect_count': 'Total Defects', 'month': 'Month'},
-        title='Monthly Defects by Plant', color_discrete_sequence=px.colors.qualitative.Pastel
-    )
-    st.plotly_chart(fig2, use_container_width=True)
-    st.info("Monitor defect volume per plant across months—quickly flag where and when issues spiked.")
-
-    # Downtime
-    st.subheader("Monthly Downtime by Plant")
-    dt_month = df.groupby(['month', 'plant'])['downtime'].sum().reset_index()
-    fig3 = px.bar(
-        dt_month, x='month', y='downtime', color='plant',
-        barmode='group', labels={'downtime': 'Total Downtime (mins)', 'month': 'Month'},
-        title='Monthly Downtime by Plant', color_discrete_sequence=px.colors.qualitative.Set2
-    )
-    st.plotly_chart(fig3, use_container_width=True)
-    st.info("Downtime distribution by plant over time: use this to pinpoint recurring bottlenecks.")
-
 def _delta_phrase(val, avg, unit=""):
     pct = ((val - avg) / avg) * 100 if avg else 0
     if abs(pct) < 10:
@@ -84,6 +47,8 @@ def _delta_phrase(val, avg, unit=""):
     elif pct < 0:
         return f"{val:,.1f}{unit}, a bit below average"
     return f"{val:,.1f}{unit}"
+
+### --- Main Plots ---
 
 def show_production_trends(df, smoothing=True):
     grouped = df.groupby('date', as_index=False)['bottles_produced'].sum()
@@ -163,11 +128,10 @@ def show_shift_breakdown(df):
         f"**Shift {min_shift}** has the lowest at {min_val:.2f}%."
     )
 
-
 def show_plant_comparison(df):
     # Daily Plant Leaders Plot
     st.subheader("Who Led Production Each Day?")
-    # Get the leader plant for each day
+    daily_prod = df.groupby(['date', 'plant'])['bottles_produced'].sum().reset_index()
     daily_prod['leader'] = (daily_prod.groupby('date')['bottles_produced']
                             .transform(lambda x: x == x.max()))
     leaders = daily_prod[daily_prod['leader']]
@@ -177,9 +141,8 @@ def show_plant_comparison(df):
         title='Plant Leading Daily Production'
     )
     st.plotly_chart(fig_leader, use_container_width=True)
-    st.info("Shows which plant led daily production (hover for value).")
+    st.info("Shows which plant led daily production. Hover to see the plant and values.")
 
-    
     st.subheader("Total Production by Plant (Sorted)")
     grouped = df.groupby('plant')['bottles_produced'].sum().reset_index().sort_values(by='bottles_produced', ascending=False)
     fig = px.bar(
@@ -197,6 +160,7 @@ def show_plant_comparison(df):
 def show_defect_comparison(df):
     # Repeat for defects
     st.subheader("Who Had Most Defects Each Day?")
+    daily_defects = df.groupby(['date', 'plant'])['defect_count'].sum().reset_index()
     daily_defects['leader'] = (daily_defects.groupby('date')['defect_count']
                                .transform(lambda x: x == x.max()))
     defect_leaders = daily_defects[daily_defects['leader']]
@@ -206,7 +170,7 @@ def show_defect_comparison(df):
         title='Plant with Most Defects Per Day'
     )
     st.plotly_chart(fig_def_leader, use_container_width=True)
-    st.info("Shows which plant had the most defects each day.")
+    st.info("Shows which plant had the most defects each day. Hover to see values.")
 
     st.subheader("Total Defects by Plant (Sorted)")
     grouped = df.groupby('plant')['defect_count'].sum().reset_index().sort_values(by='defect_count', ascending=False)
@@ -222,8 +186,57 @@ def show_defect_comparison(df):
     min_plant = grouped.iloc[-1]['plant']
     st.info(f"{max_plant} recorded the highest total defects, {min_plant} the least.")
 
-def show_heatmap_defect_rates(df):
+def show_monthly_metric_trends(df):
+    df['month'] = df['date'].dt.to_period('M').astype(str)
+    # Production
+    st.subheader("Monthly Production by Plant")
+    prod_month = df.groupby(['month', 'plant'])['bottles_produced'].sum().reset_index()
+    fig1 = px.bar(
+        prod_month, x='month', y='bottles_produced', color='plant',
+        barmode='group', labels={'bottles_produced': 'Total Produced', 'month': 'Month'},
+        title='Monthly Production by Plant', color_discrete_sequence=px.colors.qualitative.Bold
+    )
+    st.plotly_chart(fig1, use_container_width=True)
+    if not prod_month.empty:
+        top_prod_month = prod_month.loc[prod_month.groupby('month')['bottles_produced'].idxmax()]
+        month = top_prod_month['month'].iloc[-1]
+        plant = top_prod_month['plant'].iloc[-1]
+        val = top_prod_month['bottles_produced'].iloc[-1]
+        st.info(f"In {month}, {plant} led production with {val:,} bottles produced.")
 
+    # Defects
+    st.subheader("Monthly Defects by Plant")
+    def_month = df.groupby(['month', 'plant'])['defect_count'].sum().reset_index()
+    fig2 = px.bar(
+        def_month, x='month', y='defect_count', color='plant',
+        barmode='group', labels={'defect_count': 'Total Defects', 'month': 'Month'},
+        title='Monthly Defects by Plant', color_discrete_sequence=px.colors.qualitative.Pastel
+    )
+    st.plotly_chart(fig2, use_container_width=True)
+    if not def_month.empty:
+        top_def_month = def_month.loc[def_month.groupby('month')['defect_count'].idxmax()]
+        month = top_def_month['month'].iloc[-1]
+        plant = top_def_month['plant'].iloc[-1]
+        val = top_def_month['defect_count'].iloc[-1]
+        st.info(f"In {month}, {plant} had the most defects: {val:,}.")
+
+    # Downtime
+    st.subheader("Monthly Downtime by Plant")
+    dt_month = df.groupby(['month', 'plant'])['downtime'].sum().reset_index()
+    fig3 = px.bar(
+        dt_month, x='month', y='downtime', color='plant',
+        barmode='group', labels={'downtime': 'Total Downtime (mins)', 'month': 'Month'},
+        title='Monthly Downtime by Plant', color_discrete_sequence=px.colors.qualitative.Set2
+    )
+    st.plotly_chart(fig3, use_container_width=True)
+    if not dt_month.empty:
+        top_dt_month = dt_month.loc[dt_month.groupby('month')['downtime'].idxmax()]
+        month = top_dt_month['month'].iloc[-1]
+        plant = top_dt_month['plant'].iloc[-1]
+        val = top_dt_month['downtime'].iloc[-1]
+        st.info(f"In {month}, {plant} experienced the most downtime: {val:,.0f} mins.")
+
+def show_heatmap_defect_rates(df):
     st.subheader("Defect Rates by Plant and Shift")
     pivot = df.pivot_table(index='plant', columns='shift', values='defect_count', aggfunc='sum').fillna(0)
     fig = px.imshow(
@@ -299,7 +312,13 @@ def show_monthly_summary_table(df):
     summary = summary.merge(hi_dt_plant, on='month')
     summary = summary.merge(lo_dt_plant, on='month')
     st.dataframe(summary, use_container_width=True)
-    st.info("This table summarises monthly averages, number of operating days, and top/bottom performing plants for each metric.")
+    if not summary.empty:
+        month = summary['month'].iloc[-1]
+        top_plant = summary['Top Plant'].iloc[-1]
+        defect_plant = summary['Most Defects Plant'].iloc[-1]
+        st.info(
+            f"In {month}: {top_plant} had the highest average production, {defect_plant} saw the most average defects."
+        )
 
 def show_kpi_insights(df):
     st.subheader("KPI Highlights")
@@ -314,19 +333,6 @@ def show_kpi_insights(df):
         show_defect_comparison(df)
 
     st.markdown("---")
-    st.subheader("Daily Plant Leaders")
-    daily_prod = df.groupby(['date', 'plant'])['bottles_produced'].sum().reset_index()
-    top_prod_per_day = daily_prod.loc[daily_prod.groupby('date')['bottles_produced'].idxmax()]
-    st.markdown("**Table: Days where each plant led daily production (sorted):**")
-    st.dataframe(top_prod_per_day[['date', 'plant', 'bottles_produced']].sort_values('bottles_produced', ascending=False), use_container_width=True)
-
-    daily_defects = df.groupby(['date', 'plant'])['defect_count'].sum().reset_index()
-    top_defects_per_day = daily_defects.loc[daily_defects.groupby('date')['defect_count'].idxmax()]
-    st.markdown("**Table: Days where each plant had the highest defects (sorted):**")
-    st.dataframe(top_defects_per_day[['date', 'plant', 'defect_count']].sort_values('defect_count', ascending=False), use_container_width=True)
-
-    # Monthly trends for all key metrics
-    st.markdown("---")
     show_monthly_metric_trends(df)
     st.markdown("---")
     show_heatmap_defect_rates(df)
@@ -340,7 +346,6 @@ def show_kpi_insights(df):
     show_dayofweek_defects(df)
 
 def show_downtime_contribution_by_shift(df):
- 
     st.subheader("Downtime Contribution by Shift")
     grouped = df.groupby('shift')['downtime'].sum().reset_index()
     fig = px.pie(grouped, names='shift', values='downtime', title='Share of Total Downtime by Shift', color_discrete_sequence=px.colors.qualitative.Set2)
