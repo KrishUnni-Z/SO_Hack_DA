@@ -189,11 +189,20 @@ elif menu == "Manual Entry":
         # Save or append to the plant's _clean.csv file
         processed_file = os.path.join(processed_data_path, f"{plant}_clean.csv")
         if os.path.exists(processed_file):
-            entry.to_csv(processed_file, mode='a', header=False, index=False)
+            existing = pd.read_csv(processed_file, parse_dates=['date'])
+            # Check if this date/shift combo already exists
+            duplicate = (
+                (existing['date'] == str(date)) &
+                (existing['shift'] == shift)
+            ).any()
+            if duplicate:
+                st.warning(f"An entry for {plant} on {date}, shift {shift} already exists. Not added.")
+            else:
+                entry.to_csv(processed_file, mode='a', header=False, index=False)
+                st.success(f"Entry added for {plant} on {date}, shift {shift}.")
         else:
             entry.to_csv(processed_file, mode='w', header=True, index=False)
-        st.success(f"Entry added for {plant} on {date}.")
-
+            st.success(f"Entry added for {plant} on {date}, shift {shift}.")
 
 st.markdown("---")
 st.caption("Made for Summer Open Hackathon 2025.")
