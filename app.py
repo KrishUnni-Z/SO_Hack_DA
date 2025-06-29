@@ -190,8 +190,11 @@ elif menu == "Manual Entry":
             st.error("Bottles produced must be at least 1.")
         elif defect_count < 0 or downtime < 0:
             st.error("Defect count and downtime cannot be negative.")
+        elif defect_count > bottles_produced:
+            st.error("Defect count cannot exceed bottles produced.")
         elif not plant or not date or not shift:
             st.error("All fields are required.")
+            # continue
         else:
             try:
                 # Standardise shift
