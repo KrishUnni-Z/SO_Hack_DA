@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import json
 
-# Only allow these plants (ensure these match your mapping.json keys)
 ALLOWED_PLANTS = {f"plant_{i}" for i in range(1, 8)}
 
 def load_mapping():
@@ -17,7 +16,7 @@ def standardise_shifts(df):
 
 def process_file(file_name, raw_data_path='data/raw', processed_data_path='data/processed'):
     mapping = load_mapping()
-    # Extract plant by filename (assume: plant_X.xlsx)
+
     base_name = os.path.splitext(file_name)[0].lower()
     if base_name not in mapping or base_name not in ALLOWED_PLANTS:
         raise ValueError(f"Unknown or not-allowed plant: {base_name}. Allowed: {', '.join(sorted(ALLOWED_PLANTS))}")
@@ -25,9 +24,9 @@ def process_file(file_name, raw_data_path='data/raw', processed_data_path='data/
     # Read and clean data
     df = pd.read_excel(os.path.join(raw_data_path, file_name))
     df = df.rename(columns={k: v for k, v in mapping[base_name].items() if k in df.columns})
-    # Lowercase columns just in case
+    # Lowercase columns
     df.columns = [c.lower() for c in df.columns]
-    # Add day of week if not present
+    # Add day of week
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])
         df['day_of_week'] = df['date'].dt.day_name()
@@ -52,7 +51,7 @@ def process_all_files(raw_data_path='data/raw', processed_data_path='data/proces
 def safe_process_file(file_name, raw_data_path='data/raw', processed_data_path='data/processed'):
     try:
         process_file(file_name, raw_data_path, processed_data_path)
-        return None  # Success
+        return None 
     except ValueError as e:
         return str(e)
     except Exception as ex:
