@@ -1,7 +1,7 @@
 # Factory Metrics Integration Dashboard
 
 A modern web dashboard for unified, real-time analytics across multiple manufacturing plants.  
-Built by **Krishnan Unni APrasad** for the Summer Open Hackathon 2025.
+Built by **Krishnan Unni Prasad** for the Summer Open Hackathon 2025.
 
 ---
 
@@ -95,7 +95,7 @@ It provides instant visualisation, cross-plant comparison, and operational insig
 
 ## Author
 
-**Krishnan Unni APrasad**  
+**Krishnan Unni Prasad**  
 Data Science @ University of Technology Sydney  
 [sohack25.streamlit.app](https://sohack25.streamlit.app/)
 
